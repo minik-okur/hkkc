@@ -96,7 +96,7 @@ const Game = (() => {
 
     const harfler = Array(BORU_SAYISI).fill(null).map((_, i) => {
       if (i === durum.dogruIndex) return dogru;
-      return _rastgeleHarf([dogru]);
+      return _rastgeleHarf([dogru, ...eksikHarfler]);
     });
 
     durum.aktifBorular = harfler.map((h, i) => ({
@@ -135,8 +135,9 @@ const Game = (() => {
       // Harf bekleyen alana gel, 5sn ver
       durum.bekleyenHarf = secilen.harf;
       UI.bekleyenGoster(secilen.harf, BEKLEME_SURE, _bekleyenSureDoldu);
+      _yeniBorular();
     } else {
-      // Yanlış — o harf + tezgahtaki harfler zone d'ye
+      // Yanlış — o harf zone d'ye
       _yanlisHarflerDus([secilen.harf]);
       _yeniBorular();
     }
