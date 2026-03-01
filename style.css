@@ -288,7 +288,6 @@ html, body {
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   gap: 2px;
-  /* satırlar alta hizalı durur */
   align-content: end;
 }
 
@@ -308,7 +307,6 @@ html, body {
   to   { transform: translateY(0);     opacity: 1; }
 }
 
-/* Renk varyantları — rastgele atanır */
 .yh-r { background: rgba(120,0,0,0.4);   border: 1px solid #660000; color: #cc2200; }
 .yh-g { background: rgba(0,80,0,0.4);    border: 1px solid #004400; color: #009900; }
 .yh-y { background: rgba(100,70,0,0.4);  border: 1px solid #554400; color: #aa8800; }
@@ -364,6 +362,7 @@ html, body {
 }
 
 .puan-pop { animation: puan-pop 0.4s ease; }
+
 /* ══════════════════════════════
    MASAÜSTÜ — Ortalanmış Kutu
 ══════════════════════════════ */
@@ -373,13 +372,8 @@ html, body {
     background: #05050a;
   }
 
-  #zone-a, #zone-b, #bekleyen-alan, #zone-c, #zone-e {
+  body > div {
     width: 420px;
-  }
-
-  #zone-d {
-    width: 420px;
-    flex: 1;
-    position: relative;
+    max-width: 420px;
   }
 }
