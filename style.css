@@ -27,7 +27,7 @@
 html {
   width: 100%; height: 100dvh;
   overflow: hidden;
-  background: var(--bg);
+  background: #000;
   display: flex;
   justify-content: center;
 }
@@ -37,6 +37,7 @@ body {
   max-width: 480px;
   height: 100dvh;
   overflow: hidden;
+  background: var(--bg);
   color: var(--text);
   font-family: 'Courier New', monospace;
   display: flex;
@@ -238,7 +239,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(11px, 3.5vw, 16px);
+  font-size: clamp(11px, 3.5cqw, 16px);
   font-weight: bold;
   border: 1px solid var(--border);
   background: #0a1020;
@@ -297,7 +298,6 @@ body {
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   gap: 2px;
-  /* satırlar alta hizalı durur */
   align-content: end;
 }
 
@@ -307,7 +307,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(9px, 3vw, 13px);
+  font-size: clamp(9px, 3cqw, 13px);
   font-weight: bold;
   animation: dusus 0.3s ease;
 }
@@ -317,7 +317,6 @@ body {
   to   { transform: translateY(0);     opacity: 1; }
 }
 
-/* Renk varyantları — rastgele atanır */
 .yh-r { background: rgba(120,0,0,0.4);   border: 1px solid #660000; color: #cc2200; }
 .yh-g { background: rgba(0,80,0,0.4);    border: 1px solid #004400; color: #009900; }
 .yh-y { background: rgba(100,70,0,0.4);  border: 1px solid #554400; color: #aa8800; }
