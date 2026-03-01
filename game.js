@@ -87,41 +87,14 @@ const Game = (() => {
   function _yeniBorular() {
     if (durum.oyunBitti) return;
 
-    // Mevcut kelimedeki EKSİK harfleri bul
+    // 3 harf üret, 1 tanesi doğru (kelimeyle alakalı veya rastgele)
     const veri = Words.getKelime(durum.seviye, durum.kelimeSira);
-    const kelimeHarfleri = veri.harf.split('');
-    
-    // Grid'deki dolu hücreleri al (yerleştirilmiş harfler)
-    const doluHarfler = Grid.getDoluHarfler();
-    
-    // Eksik harfler = kelimedeki harfler - doluHarfler
-    const eksikHarfler = kelimeHarfleri.filter(h => !doluHarfler.includes(h));
-    
-    // Eğer hiç eksik yoksa (kelime tamamlanmış olabilir) kelimenin tamamını kullan
-    const dogruHarfHavuzu = eksikHarfler.length > 0 ? eksikHarfler : kelimeHarfleri;
-    
-    // En az 1 doğru harf seç (havuz varsa)
-    let dogruHarf;
-    if (dogruHarfHavuzu.length > 0) {
-      dogruHarf = dogruHarfHavuzu[Math.floor(Math.random() * dogruHarfHavuzu.length)];
-    } else {
-      // Hiç harf yoksa (imkansız) rastgele
-      dogruHarf = ALFABE[Math.floor(Math.random() * ALFABE.length)];
-    }
-    
+    const dogru = veri.harf[Math.floor(Math.random() * veri.harf.length)];
     durum.dogruIndex = Math.floor(Math.random() * BORU_SAYISI);
 
     const harfler = Array(BORU_SAYISI).fill(null).map((_, i) => {
-      if (i === durum.dogruIndex) return dogruHarf;
-      
-      // Yanlış harfler: kelimedeki harflerden olmasın (ama nadiren olabilir, %100 garanti değil)
-      // Daha iyisi: kelime harfleri dışından seç
-      let yanlisHarf;
-      do {
-        yanlisHarf = ALFABE[Math.floor(Math.random() * ALFABE.length)];
-      } while (kelimeHarfleri.includes(yanlisHarf)); // kelimede olmayan harf bulana kadar dene
-      
-      return yanlisHarf;
+      if (i === durum.dogruIndex) return dogru;
+      return _rastgeleHarf([dogru]);
     });
 
     durum.aktifBorular = harfler.map((h, i) => ({
@@ -129,13 +102,18 @@ const Game = (() => {
       dogru: i === durum.dogruIndex,
     }));
 
-    // Siradaki 3 (gösterim) - rastgele
-    durum.siradaki = Array(3).fill(null).map(() => {
-      return ALFABE[Math.floor(Math.random() * ALFABE.length)];
-    });
+    // Siradaki 3 (gösterim)
+    durum.siradaki = Array(3).fill(null).map(() => _rastgeleHarf([]));
 
     UI.setSiradaki(durum.siradaki);
     UI.setBorular(harfler, durum.dogruIndex);
+  }
+
+  function _rastgeleHarf(haric) {
+    let h;
+    do { h = ALFABE[Math.floor(Math.random() * ALFABE.length)]; }
+    while (haric.includes(h));
+    return h;
   }
 
   // ── SEÇİM ──
@@ -186,6 +164,8 @@ const Game = (() => {
   }
 
   // Bekleyen harf tezgaha tıklanınca (UI'dan çağrılacak)
+  // Şimdilik: bekleyen harfi ilk eksik yere otomatik koy
+  // İleride: oyuncu sürükleyerek koyacak
   function bekleyenYerlestir() {
     if (!durum.bekleyenHarf) return;
     const basarili = Grid.harfEkle(durum.bekleyenHarf);

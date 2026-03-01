@@ -1,34 +1,38 @@
 /* =============================================
    GRID.JS — Tezgah Durum Yöneticisi
+   Tezgahtaki hücrelerin state'ini tutar.
    Bağlı: index.html
    Kullanır: UI, Words
    ============================================= */
 
 const Grid = (() => {
 
+  // tezgah: [{ harf, eksik, bos }]
+  // harf: string | null
+  // eksik: bool — boş ama doldurulacak
+  // bos: bool — tamamen boş hücre
   let tezgah = [];
-  let hedefKelime = '';
-  let hedefHarfler = [];
-  let baslangicPos = 0;
+  let hedefKelime = '';  // 'KASAP'
   let onKelimeTamam = null;
+  let onDrop = null;
 
   function init(kelime, eksikSayisi, kelimeTamamCallback) {
-    hedefKelime  = kelime;
-    hedefHarfler = kelime.split('');
+    hedefKelime = kelime;
     onKelimeTamam = kelimeTamamCallback;
 
-    const n = hedefHarfler.length;
-    baslangicPos = Math.floor((8 - n) / 2);
+    // Tezgahı oluştur: 8 hücre
+    // Kelime ortaya hizalanır
+    const harfler = kelime.split('');
+    const baslangic = Math.floor((8 - harfler.length) / 2);
 
-    // Boş 8 hücre
     tezgah = Array(8).fill(null).map(() => ({ harf: null, eksik: false, bos: true }));
 
-    // Eksik pozisyonları rastgele seç
-    const tumIndexler = hedefHarfler.map((_, i) => i);
-    const eksikIndexler = _rastgeleSecim(tumIndexler, eksikSayisi);
+    // Rastgele eksik indexler seç (kelime içinden)
+    const kelimeIndexler = harfler.map((_, i) => i);
+    const eksikIndexler = _rastgeleSecim(kelimeIndexler, eksikSayisi);
 
-    hedefHarfler.forEach((h, i) => {
-      const pos = baslangicPos + i;
+    harfler.forEach((h, i) => {
+      const pos = baslangic + i;
       if (eksikIndexler.includes(i)) {
         tezgah[pos] = { harf: null, eksik: true, bos: false };
       } else {
@@ -40,70 +44,66 @@ const Grid = (() => {
   }
 
   function _rastgeleSecim(dizi, n) {
-    return [...dizi].sort(() => Math.random() - 0.5).slice(0, n);
+    const karistir = [...dizi].sort(() => Math.random() - 0.5);
+    return karistir.slice(0, n);
   }
 
   function _render() {
-    UI.tezgahRender(tezgah, _drop);
+    UI.tezgahRender(tezgah, _suruklemeDrop);
   }
 
-  function _drop(kaynakIndex, hedefIndex) {
-    const k = tezgah[kaynakIndex];
-    const h = tezgah[hedefIndex];
-    if (!k || !k.harf) return;
+  function _suruklemeDrop(kaynakIndex, hedefIndex) {
+    const kaynak = tezgah[kaynakIndex];
+    const hedef  = tezgah[hedefIndex];
 
-    // Sadece tezgah içi hücrelerle takas
-    if (h.bos) return;
+    // Sadece dolu hücreyi eksik veya dolu hücreyle takas et
+    if (!kaynak.harf) return;
 
-    const tmpHarf  = h.harf;
-    const tmpEksik = h.eksik;
+    // Takas
+    const tmpHarf   = hedef.harf;
+    const tmpEksik  = hedef.eksik;
+    const tmpBos    = hedef.bos;
 
-    tezgah[hedefIndex].harf  = k.harf;
-    tezgah[hedefIndex].eksik = false;
+    tezgah[hedefIndex].harf   = kaynak.harf;
+    tezgah[hedefIndex].eksik  = false;
+    tezgah[hedefIndex].bos    = false;
 
     tezgah[kaynakIndex].harf  = tmpHarf;
     tezgah[kaynakIndex].eksik = tmpHarf ? false : tmpEksik;
+    tezgah[kaynakIndex].bos   = tmpHarf ? false : tmpBos;
 
     _render();
     _kontrol();
   }
 
-  function bekleyenKoy(harf, hedefIndex) {
-    // Bekleyen harfi belirli bir hücreye koy
-    const h = tezgah[hedefIndex];
-    if (!h || !h.eksik) return false;
-
-    tezgah[hedefIndex].harf  = harf;
-    tezgah[hedefIndex].eksik = false;
-
+  function harfEkle(harf) {
+    // İlk eksik hücreye ekle
+    const i = tezgah.findIndex(h => h.eksik);
+    if (i === -1) return false; // eksik hücre yok
+    tezgah[i].harf  = harf;
+    tezgah[i].eksik = false;
+    tezgah[i].bos   = false;
     _render();
     _kontrol();
     return true;
   }
 
-  function ilkEksigeBekleyenKoy(harf) {
-    // Eksik yok veya oyuncu sürüklemeden tıkladıysa ilk eksiğe koy
-    const i = tezgah.findIndex(h => h.eksik);
-    if (i === -1) return false;
-    return bekleyenKoy(harf, i);
-  }
-
   function _kontrol() {
-    // Tüm hücrelerde eksik kalmamalı
-    if (tezgah.some(h => h.eksik)) return;
+    // Tezgahtaki harfleri oku, hedef kelimeyle karşılaştır
+    const harfler = tezgah.filter(h => h.harf).map(h => h.harf);
+    // Sıralı kelime
+    const olusanKelime = harfler.join('');
 
-    // Kelime alanındaki harfleri sırayla oku
-    const dilim = tezgah.slice(baslangicPos, baslangicPos + hedefHarfler.length);
-    if (dilim.some(h => !h.harf)) return;
+    // Hedef kelimenin harflerinin tam konumlarını bul
+    const hedefHarfler = hedefKelime.split('');
+    const baslangic = tezgah.findIndex(h => !h.bos);
+    const tezgahDilim = tezgah.slice(baslangic, baslangic + hedefHarfler.length);
 
-    const olusan = dilim.map(h => h.harf).join('');
-    if (olusan === hedefKelime) {
+    const eslesen = tezgahDilim.every((h, i) => h.harf === hedefHarfler[i]);
+
+    if (eslesen && !tezgahDilim.some(h => h.eksik || !h.harf)) {
       if (onKelimeTamam) onKelimeTamam(hedefKelime);
     }
-  }
-
-  function getEksikVar() {
-    return tezgah.some(h => h.eksik);
   }
 
   function temizle() {
@@ -111,10 +111,10 @@ const Grid = (() => {
     _render();
   }
 
-  function getTumHarfler() {
-    return tezgah.filter(h => h.harf).map(h => h.harf);
+  function getEksikVar() {
+    return tezgah.some(h => h.eksik);
   }
 
-  return { init, bekleyenKoy, ilkEksigeBekleyenKoy, getEksikVar, temizle, getTumHarfler };
+  return { init, harfEkle, temizle, getEksikVar };
 
 })();
