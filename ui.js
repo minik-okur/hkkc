@@ -50,10 +50,6 @@ const UI = (() => {
       const wrap = document.createElement('div');
       wrap.className = 'boru-wrap';
 
-      const ust = document.createElement('div');
-      ust.className = 'boru-ust';
-      ust.textContent = '';
-
       const ok = document.createElement('div');
       ok.className = 'boru-ok';
       ok.textContent = '▼';
@@ -66,7 +62,6 @@ const UI = (() => {
         if (typeof Game !== 'undefined') Game.harfSec(i);
       });
 
-      wrap.appendChild(ust);
       wrap.appendChild(ok);
       wrap.appendChild(kutu);
       el.appendChild(wrap);
