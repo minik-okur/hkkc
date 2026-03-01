@@ -89,7 +89,9 @@ const Game = (() => {
 
     // 3 harf üret, 1 tanesi doğru (kelimeyle alakalı veya rastgele)
     const veri = Words.getKelime(durum.seviye, durum.kelimeSira);
-    const dogru = veri.harf[Math.floor(Math.random() * veri.harf.length)];
+    const eksikHarfler = Grid.getEksikHarfler();
+    if (eksikHarfler.length === 0) return;
+    const dogru = eksikHarfler[Math.floor(Math.random() * eksikHarfler.length)];
     durum.dogruIndex = Math.floor(Math.random() * BORU_SAYISI);
 
     const harfler = Array(BORU_SAYISI).fill(null).map((_, i) => {

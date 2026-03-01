@@ -115,6 +115,18 @@ const Grid = (() => {
     return tezgah.some(h => h.eksik);
   }
 
-  return { init, harfEkle, temizle, getEksikVar };
+  function getEksikHarfler() {
+    const harfler = [];
+    const hedefHarfler = hedefKelime.split('');
+    const baslangic = Math.floor((8 - hedefHarfler.length) / 2);
+    tezgah.forEach((h, i) => {
+      if (h.eksik) {
+        harfler.push(hedefHarfler[i - baslangic]);
+      }
+    });
+    return harfler;
+  }
+
+  return { init, harfEkle, temizle, getEksikVar, getEksikHarfler };
 
 })();
