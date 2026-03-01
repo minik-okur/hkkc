@@ -13,7 +13,6 @@ const Words = (() => {
     {
       soz: 'Korku, karanlık tarafa giden yoldur.',
       kaynak: 'Yoda — Star Wars',
-      eksik: 3,
       kelimeler: [
         { kelime: 'ÜRKME',    tanim: 'Korkunun içsel hali' },
         { kelime: 'ÇÖKÜŞ',    tanim: 'Karanlık tarafa gidişin sonu' },
@@ -25,7 +24,6 @@ const Words = (() => {
     {
       soz: 'Bilgelik, bildiklerini unutmakla başlar.',
       kaynak: 'Sokrates',
-      eksik: 3,
       kelimeler: [
         { kelime: 'SIFIR',    tanim: 'Her şeyi unutup yeniden başlamak' },
         { kelime: 'YANILGI',  tanim: 'Önceki yanlış bilgiler' },
@@ -37,7 +35,6 @@ const Words = (() => {
     {
       soz: 'Sabır, acının sessiz biçimidir.',
       kaynak: 'Ambrose Bierce',
-      eksik: 3,
       kelimeler: [
         { kelime: 'SIZI',     tanim: 'İçten gelen hafif acı' },
         { kelime: 'SÜKUT',    tanim: 'Sessizlik, susan kişi' },
@@ -49,7 +46,6 @@ const Words = (() => {
     {
       soz: 'Özgürlük, sorumlulukla ölçülür.',
       kaynak: 'George Bernard Shaw',
-      eksik: 3,
       kelimeler: [
         { kelime: 'ÖLÇÜ',     tanim: 'Değer biçme' },
         { kelime: 'SINIR',    tanim: 'Özgürlüğün sınırı' },
@@ -63,7 +59,6 @@ const Words = (() => {
     {
       soz: 'Zaman, tüm yaraları sarar.',
       kaynak: 'Atasözü',
-      eksik: 4,
       kelimeler: [
         { kelime: 'YARA',   tanim: 'Ruhsal acı' },
         { kelime: 'ŞIFA',   tanim: 'İyileşme' },
@@ -75,7 +70,6 @@ const Words = (() => {
     {
       soz: 'Güç, kendini yenmekten doğar.',
       kaynak: 'Konfüçyüs',
-      eksik: 4,
       kelimeler: [
         { kelime: 'AŞIM',  tanim: 'Kendini aşma eylemi' },
         { kelime: 'YENGI', tanim: 'Zafer' },
@@ -87,7 +81,6 @@ const Words = (() => {
     {
       soz: 'Söz, kılıçtan keskindir.',
       kaynak: 'Edward Bulwer-Lytton',
-      eksik: 4,
       kelimeler: [
         { kelime: 'YARA',     tanim: 'Sözün bıraktığı iz' },
         { kelime: 'ÇELİK',   tanim: 'Kılıç, sertlik' },
@@ -99,7 +92,6 @@ const Words = (() => {
     {
       soz: 'Işık olmadan gölge de olmaz.',
       kaynak: 'Carl Jung',
-      eksik: 4,
       kelimeler: [
         { kelime: 'DENGE',    tanim: 'İkisi arasındaki ilişki' },
         { kelime: 'ZITLIK',   tanim: 'Karşıtların birlikteliği' },
@@ -113,7 +105,6 @@ const Words = (() => {
     {
       soz: 'Umut, insanı ayakta tutan son şeydir.',
       kaynak: 'Pandora Efsanesi',
-      eksik: 5,
       kelimeler: [
         { kelime: 'SON',     tanim: 'Geriye kalan tek şey' },
         { kelime: 'IŞIK',    tanim: 'Umudun sembolü' },
@@ -125,7 +116,6 @@ const Words = (() => {
     {
       soz: 'Sessizlik, en güçlü cevaptır.',
       kaynak: 'Lao Tzu',
-      eksik: 5,
       kelimeler: [
         { kelime: 'SÜKUT',     tanim: 'Derin sessizlik' },
         { kelime: 'YANIT',     tanim: 'Cevap verme' },
@@ -137,7 +127,6 @@ const Words = (() => {
     {
       soz: 'Her düşüş, yeni bir yükselişin habercisidir.',
       kaynak: 'Rumi',
-      eksik: 5,
       kelimeler: [
         { kelime: 'DÖNGÜ',    tanim: 'Düşüp kalkmanın tekrarı' },
         { kelime: 'HABER',    tanim: 'İşaret, müjde' },
@@ -149,7 +138,6 @@ const Words = (() => {
     {
       soz: 'Cesaret, korkunun yokluğu değil, korkuya rağmen yürümektir.',
       kaynak: 'Mark Twain',
-      eksik: 5,
       kelimeler: [
         { kelime: 'AŞIM',     tanim: 'Engeli geçme' },
         { kelime: 'İRADE',    tanim: 'Korkuya rağmen devam etmek' },
@@ -163,7 +151,6 @@ const Words = (() => {
     {
       soz: 'Sevgi, her şeyin başlangıcı ve sonudur.',
       kaynak: 'Konfüçyüs',
-      eksik: 6,
       kelimeler: [
         { kelime: 'BAĞ',      tanim: 'İnsanları birleştiren' },
         { kelime: 'SON',       tanim: 'Her şeyin bitişi' },
@@ -175,7 +162,6 @@ const Words = (() => {
     {
       soz: 'Alçakgönüllülük, bilginin kapısıdır.',
       kaynak: 'Sokrates',
-      eksik: 6,
       kelimeler: [
         { kelime: 'KAPI',     tanim: 'Girişin sembolü' },
         { kelime: 'İRFAN',    tanim: 'Derin bilgi' },
@@ -187,7 +173,6 @@ const Words = (() => {
     {
       soz: 'Kader, karakterdir.',
       kaynak: 'Heraklitos',
-      eksik: 6,
       kelimeler: [
         { kelime: 'HUY',       tanim: 'Karakter, tabiat' },
         { kelime: 'EYLEM',     tanim: 'Karakterin dışa vurumu' },
@@ -199,7 +184,6 @@ const Words = (() => {
     {
       soz: 'Gerçek, söylenmesi en zor olan şeydir.',
       kaynak: 'Tolstoy',
-      eksik: 6,
       kelimeler: [
         { kelime: 'SÖYLEM',    tanim: 'Dile getirme' },
         { kelime: 'GÜÇLÜK',    tanim: 'Zorlanma hali' },
@@ -213,7 +197,6 @@ const Words = (() => {
     {
       soz: 'Yalnızlık, kendini bulmanın mekânıdır.',
       kaynak: 'Paul Tillich',
-      eksik: 7,
       kelimeler: [
         { kelime: 'MEKAN',    tanim: 'Yer, ortam' },
         { kelime: 'KEŞİF',    tanim: 'Bulma eylemi' },
@@ -225,7 +208,6 @@ const Words = (() => {
     {
       soz: 'Değişmeyen tek şey değişimin kendisidir.',
       kaynak: 'Heraklitos',
-      eksik: 7,
       kelimeler: [
         { kelime: 'AKIŞ',     tanim: 'Her şeyin aktığı fikri' },
         { kelime: 'DÖNGÜ',    tanim: 'Tekrarlayan değişim' },
@@ -237,7 +219,6 @@ const Words = (() => {
     {
       soz: 'İnsan, anlamını kendisi yaratır.',
       kaynak: 'Jean-Paul Sartre',
-      eksik: 7,
       kelimeler: [
         { kelime: 'ANLAM',       tanim: 'Hayatın amacı' },
         { kelime: 'YARATIM',     tanim: 'Ortaya çıkarma eylemi' },
@@ -249,7 +230,6 @@ const Words = (() => {
     {
       soz: 'Akıl, kalbin hizmetçisi olmalıdır.',
       kaynak: 'Blaise Pascal',
-      eksik: 7,
       kelimeler: [
         { kelime: 'USUL',     tanim: 'Akıl, mantık' },
         { kelime: 'DENGE',    tanim: 'Akıl ve kalbin uyumu' },
@@ -269,13 +249,15 @@ const Words = (() => {
     return sev.kelimeler[sira % sev.kelimeler.length];
   }
 
-  function getEksikSayisi(sevNo) {
-    return getSeviye(sevNo).eksik;
+  function getEksikSayisi(sevNo, sira) {
+    // Her sözde: 1. kelime 1 eksik, 2. kelime 2 eksik ... 5. kelime 5 eksik
+    return Math.min(sira + 1, 5);
   }
 
-  function getBoruHarfSayisi(sevNo) {
-    const eksik = getEksikSayisi(sevNo);
-    return Math.max(5, eksik + 2);
+  function getBoruHarfSayisi(sevNo, sira) {
+    const eksik = getEksikSayisi(sevNo, sira);
+    // eksik + 2 yanlış (min 3)
+    return Math.max(3, eksik + 2);
   }
 
   function getSoz(sevNo) {
