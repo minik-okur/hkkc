@@ -336,7 +336,7 @@ body {
 #hikaye-metin {
   display: inline-block;
   font-size: 11px;
-  color: #94a3b8
+  color: color: #94a3b8;
   font-style: italic;
   white-space: nowrap;
 }
