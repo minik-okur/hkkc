@@ -27,7 +27,7 @@
 html {
   width: 100%; height: 100dvh;
   overflow: hidden;
-  background: #000;
+  background: #0b1120;
   display: flex;
   justify-content: center;
 }
@@ -86,7 +86,7 @@ body {
    ZONE B — BORULAR
 ══════════════════════════════ */
 #zone-b {
-  background: #0c0c18;
+  background: #131d38;
   border-bottom: 1px solid var(--border);
   padding: 2px 8px 2px;
   flex-shrink: 0;
@@ -163,7 +163,7 @@ body {
   align-items: center;
   gap: 3px;
   padding: 2px 0 2px;
-  background: #080d18;
+  background: #0f1830;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
   min-height: 0;
@@ -218,7 +218,7 @@ body {
 #zone-c {
   border-top: 2px solid #1a2a4a;
   border-bottom: 2px solid #1a2a4a;
-  background: #07101a;
+  background: #111b33;
   padding: 6px 8px;
   flex-shrink: 0;
 }
@@ -238,16 +238,16 @@ body {
   font-size: clamp(11px, 3.5cqw, 16px);
   font-weight: bold;
   border: 1px solid var(--border);
-  background: #0a1020;
+  background: #152040;
   color: var(--text);
   position: relative;
   transition: transform 0.15s, border-color 0.2s;
 }
 
 .tezgah-hucre.dolu {
-  border-color: #2a3a6a;
-  background: rgba(40,60,140,0.25);
-  color: #7799dd;
+  border-color: #6366f1;
+  background: rgba(99,102,241,0.2);
+  color: #a5b4fc;
   cursor: grab;
 }
 
@@ -336,7 +336,7 @@ body {
 #hikaye-metin {
   display: inline-block;
   font-size: 11px;
-  color: #555;
+  color: #94a3b8
   font-style: italic;
   white-space: nowrap;
 }
