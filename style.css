@@ -4,15 +4,15 @@
    ============================================= */
 
 :root {
-  --bg:       #0b1120;
-  --surface:  #131d38;
-  --border:   #2d3a5c;
-  --accent:   #6366f1;
-  --yesil:    #34d399;
-  --kirmizi:  #fb7185;
-  --altin:    #fbbf24;
-  --text:     #e2e8f0;
-  --dim:      #94a3b8;
+  --bg:       #1a1a2e;
+  --surface:  #16213e;
+  --border:   #0f3460;
+  --accent:   #e94560;
+  --yesil:    #00ff9f;
+  --kirmizi:  #ff2e63;
+  --altin:    #f5c542;
+  --text:     #eaf0ff;
+  --dim:      #8892b0;
   --cols: 8;
 }
 
@@ -27,7 +27,7 @@
 html {
   width: 100%; height: 100dvh;
   overflow: hidden;
-  background: #0b1120;
+  background: #0f0f23;
   display: flex;
   justify-content: center;
 }
@@ -86,7 +86,7 @@ body {
    ZONE B — BORULAR
 ══════════════════════════════ */
 #zone-b {
-  background: #131d38;
+  background: #1a2744;
   border-bottom: 1px solid var(--border);
   padding: 2px 8px 2px;
   flex-shrink: 0;
@@ -146,8 +146,8 @@ body {
   transition: transform 0.1s, border-color 0.2s;
 }
 .boru-harf:active { transform: scale(0.9); }
-.boru-harf.dogru  { border-color: var(--yesil); color: var(--yesil); background: rgba(0,255,136,0.1); box-shadow: 0 0 8px rgba(0,255,136,0.3); }
-.boru-harf.yanlis { border-color: var(--kirmizi); color: var(--kirmizi); background: rgba(255,51,85,0.1); }
+.boru-harf.dogru  { border-color: var(--yesil); color: var(--yesil); background: rgba(0,255,159,0.15); box-shadow: 0 0 12px rgba(0,255,159,0.4); }
+.boru-harf.yanlis { border-color: var(--kirmizi); color: var(--kirmizi); background: rgba(255,46,99,0.15); }
 
 .boru-harf-tek {
   font-size: 13px;
@@ -163,7 +163,7 @@ body {
   align-items: center;
   gap: 3px;
   padding: 2px 0 2px;
-  background: #0f1830;
+  background: #1e1145;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
   min-height: 0;
@@ -216,9 +216,9 @@ body {
    ZONE C — TEZGAH
 ══════════════════════════════ */
 #zone-c {
-  border-top: 2px solid #1a2a4a;
-  border-bottom: 2px solid #1a2a4a;
-  background: #111b33;
+  border-top: 2px solid #e94560;
+  border-bottom: 2px solid #e94560;
+  background: #0d2137;
   padding: 6px 8px;
   flex-shrink: 0;
 }
@@ -238,36 +238,36 @@ body {
   font-size: clamp(11px, 3.5cqw, 16px);
   font-weight: bold;
   border: 1px solid var(--border);
-  background: #152040;
+  background: #162447;
   color: var(--text);
   position: relative;
   transition: transform 0.15s, border-color 0.2s;
 }
 
 .tezgah-hucre.dolu {
-  border-color: #6366f1;
-  background: rgba(99,102,241,0.2);
-  color: #a5b4fc;
+  border-color: #e94560;
+  background: rgba(233,69,96,0.2);
+  color: #ff6b81;
   cursor: grab;
 }
 
 .tezgah-hucre.dolu:active { cursor: grabbing; transform: scale(0.9); }
 
 .tezgah-hucre.eksik {
-  border: 1px dashed #2a3a6a;
-  background: #060e18;
+  border: 1px dashed #0f3460;
+  background: #0c1a30;
   color: transparent;
 }
 
 .tezgah-hucre.surukle-ustu {
   border-color: var(--accent);
-  background: rgba(0,229,255,0.1);
+  background: rgba(233,69,96,0.15);
 }
 
 .tezgah-hucre.dogru-kelime {
   border-color: var(--yesil);
   color: var(--yesil);
-  background: rgba(0,255,136,0.12);
+  background: rgba(0,255,159,0.2);
   animation: flash-yesil 0.4s ease;
 }
 
@@ -313,9 +313,9 @@ body {
   to   { transform: translateY(0);     opacity: 1; }
 }
 
-.yh-r { background: rgba(120,0,0,0.4);   border: 1px solid #660000; color: #cc2200; }
-.yh-g { background: rgba(0,80,0,0.4);    border: 1px solid #004400; color: #009900; }
-.yh-y { background: rgba(100,70,0,0.4);  border: 1px solid #554400; color: #aa8800; }
+.yh-r { background: rgba(233,69,96,0.3);  border: 1px solid #e94560; color: #ff6b81; }
+.yh-g { background: rgba(0,255,159,0.2);  border: 1px solid #00ff9f; color: #00ff9f; }
+.yh-y { background: rgba(245,197,66,0.25); border: 1px solid #f5c542; color: #f5c542; }
 
 /* ══════════════════════════════
    ZONE E — HİKAYE
@@ -336,7 +336,7 @@ body {
 #hikaye-metin {
   display: inline-block;
   font-size: 11px;
-  color: #94a3b8;
+  color: #8892b0;
   font-style: italic;
   white-space: nowrap;
 }
