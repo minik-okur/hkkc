@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Harf Oyunu</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ZONE A: SKOR -->
+  <div id="zone-a">
+    <div class="skor-item"><span class="lbl">PUAN</span><span id="puan">0</span></div>
+    <div class="skor-item"><span class="lbl">KELİME</span><span id="kelime-sayisi">0</span></div>
+    <div class="skor-item">
+      <span class="lbl">CAN</span>
+      <div id="canlar"></div>
+    </div>
+    <div class="skor-item"><span class="lbl">SEVİYE</span><span id="seviye">1</span></div>
+  </div>
+
+  <!-- ZONE B: BORULAR -->
+  <div id="zone-b">
+    <div id="siradaki-label">SIRADAKI</div>
+    <div id="siradaki-harfler"></div>
+    <div id="borular"></div>
+  </div>
+
+  <!-- BEKLEYEN HARF: seçilen harf tezgah üstünde 5sn bekler -->
+  <div id="bekleyen-alan">
+    <div id="bekleyen-harf"></div>
+    <div id="timer-bar"><div id="timer-fill"></div></div>
+  </div>
+
+  <!-- ZONE C: TEZGAH (1 satır, sürükle bırak) -->
+  <div id="zone-c">
+    <div id="tezgah"></div>
+  </div>
+
+  <!-- ZONE D: YANLIŞ HARFLER -->
+  <div id="zone-d">
+    <div id="yanlis-grid"></div>
+  </div>
+
+  <!-- ZONE E: HİKAYE -->
+  <div id="zone-e">
+    <div id="hikaye-sarici"><span id="hikaye-metin"></span></div>
+  </div>
+
+  <!-- MODÜLLER — sıra önemli -->
+  <script src="words.js"></script>
+  <script src="ui.js"></script>
+  <script src="grid.js"></script>
+  <script src="game.js"></script>
+
+</body>
+</html>
