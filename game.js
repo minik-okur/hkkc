@@ -8,21 +8,27 @@ const Game = (() => {
 
   const ALFABE = 'ABCDEFGHIİKLMNOPRSTUYZ'.split('');
   const BORU_SAYISI = 3;
-  const BEKLEME_SURE = 5;
+  const BEKLEME_SURE = 5; // saniye
 
-  let durum = {};
+  let durum = {
+    puan:        0,
+    can:         3,
+    seviye:      1,
+    kelimeSira:  0,   // seviyedeki kaçıncı kelime
+    aktifBorular: [], // [{ harf, dogru }]
+    siradaki:    [],  // sonraki 3 harf (gösterim için)
+    bekleyenHarf: null,
+    bekleyenTimer: null,
+    oyunBitti:   false,
+    dogruIndex:  -1,
+  };
 
   function init() {
     durum = {
-      puan:         0,
-      can:          3,
-      seviye:       1,
-      kelimeSira:   0,
-      aktifHarfler: [],   // 3 boru harfi
-      dogruIndex:   -1,
-      bekleyenHarf: null,
-      secimYapildi: false,
-      oyunBitti:    false,
+      puan: 0, can: 3, seviye: 1, kelimeSira: 0,
+      aktifBorular: [], siradaki: [],
+      bekleyenHarf: null, bekleyenTimer: null,
+      oyunBitti: false, dogruIndex: -1,
     };
 
     UI.setCanlar(3);
@@ -39,24 +45,29 @@ const Game = (() => {
 
   // ── KELİME ──
   function _yeniKelimeYukle() {
-    const veri  = Words.getKelime(durum.seviye, durum.kelimeSira);
+    const veri = Words.getKelime(durum.seviye, durum.kelimeSira);
     const eksik = Words.getEksikSayisi(durum.seviye);
+
     Grid.init(veri.kelime, eksik, _kelimeTamam);
   }
 
   function _kelimeTamam(kelime) {
     if (durum.oyunBitti) return;
 
-    UI.tezgahFlash();
+    // Flash + puan
+    UI.tezgahFlash('yesil');
     const puan = kelime.length * 10 * durum.seviye;
     durum.puan += puan;
     UI.setPuan(durum.puan);
 
+    // Hikayeye ekle
     const veri = Words.getKelime(durum.seviye, durum.kelimeSira);
     UI.hikayeEkle(kelime, veri.tanim);
-    durum.kelimeSira++;
-    UI.setKelimeSayisi(durum.kelimeSira);
+    UI.setKelimeSayisi(durum.kelimeSira + 1);
 
+    durum.kelimeSira++;
+
+    // Seviye geçişi
     const sevVeri = Words.getSeviye(durum.seviye);
     if (durum.kelimeSira >= sevVeri.kelimeler.length) {
       durum.kelimeSira = 0;
@@ -76,114 +87,143 @@ const Game = (() => {
   function _yeniBorular() {
     if (durum.oyunBitti) return;
 
-    durum.secimYapildi = false;
-
-    // Doğru harf: mevcut kelimeden rastgele bir harf
-    const veri     = Words.getKelime(durum.seviye, durum.kelimeSira);
-    const dogru    = veri.harf[Math.floor(Math.random() * veri.harf.length)];
+    // Mevcut kelimedeki EKSİK harfleri bul
+    const veri = Words.getKelime(durum.seviye, durum.kelimeSira);
+    const kelimeHarfleri = veri.harf.split('');
+    
+    // Grid'deki dolu hücreleri al (yerleştirilmiş harfler)
+    const doluHarfler = Grid.getDoluHarfler();
+    
+    // Eksik harfler = kelimedeki harfler - doluHarfler
+    const eksikHarfler = kelimeHarfleri.filter(h => !doluHarfler.includes(h));
+    
+    // Eğer hiç eksik yoksa (kelime tamamlanmış olabilir) kelimenin tamamını kullan
+    const dogruHarfHavuzu = eksikHarfler.length > 0 ? eksikHarfler : kelimeHarfleri;
+    
+    // En az 1 doğru harf seç (havuz varsa)
+    let dogruHarf;
+    if (dogruHarfHavuzu.length > 0) {
+      dogruHarf = dogruHarfHavuzu[Math.floor(Math.random() * dogruHarfHavuzu.length)];
+    } else {
+      // Hiç harf yoksa (imkansız) rastgele
+      dogruHarf = ALFABE[Math.floor(Math.random() * ALFABE.length)];
+    }
+    
     durum.dogruIndex = Math.floor(Math.random() * BORU_SAYISI);
 
     const harfler = Array(BORU_SAYISI).fill(null).map((_, i) => {
-      return i === durum.dogruIndex ? dogru : _rastgeleHarf([dogru]);
+      if (i === durum.dogruIndex) return dogruHarf;
+      
+      // Yanlış harfler: kelimedeki harflerden olmasın (ama nadiren olabilir, %100 garanti değil)
+      // Daha iyisi: kelime harfleri dışından seç
+      let yanlisHarf;
+      do {
+        yanlisHarf = ALFABE[Math.floor(Math.random() * ALFABE.length)];
+      } while (kelimeHarfleri.includes(yanlisHarf)); // kelimede olmayan harf bulana kadar dene
+      
+      return yanlisHarf;
     });
 
-    durum.aktifHarfler = harfler;
+    durum.aktifBorular = harfler.map((h, i) => ({
+      harf: h,
+      dogru: i === durum.dogruIndex,
+    }));
 
-    // Siradaki gösterim
-    const siradaki = Array(3).fill(null).map(() => _rastgeleHarf([]));
-    UI.setSiradaki(siradaki);
-    UI.setBorular(harfler);
-  }
+    // Siradaki 3 (gösterim) - rastgele
+    durum.siradaki = Array(3).fill(null).map(() => {
+      return ALFABE[Math.floor(Math.random() * ALFABE.length)];
+    });
 
-  function _rastgeleHarf(haric) {
-    let h;
-    do { h = ALFABE[Math.floor(Math.random() * ALFABE.length)]; }
-    while (haric.includes(h));
-    return h;
+    UI.setSiradaki(durum.siradaki);
+    UI.setBorular(harfler, durum.dogruIndex);
   }
 
   // ── SEÇİM ──
   function harfSec(index) {
-    if (durum.oyunBitti || durum.secimYapildi || durum.bekleyenHarf) return;
+    if (durum.oyunBitti) return;
+    if (durum.bekleyenHarf) return; // zaten bekliyor
 
-    durum.secimYapildi = true;
-    const dogru = index === durum.dogruIndex;
+    const secilen = durum.aktifBorular[index];
+    if (!secilen) return;
 
-    // Renk göster
-    UI.boruRenkGoster(index, dogru);
-
-    if (dogru) {
-      // Can kazan
+    if (secilen.dogru) {
+      // Can kazan (max 3)
       if (durum.can < 3) {
         durum.can++;
         UI.setCanlar(durum.can);
       }
-      // Harf bekleyen alana gel
-      durum.bekleyenHarf = durum.aktifHarfler[index];
-      UI.bekleyenGoster(durum.bekleyenHarf, BEKLEME_SURE, _bekleyenSureDoldu);
+      // Harf bekleyen alana gel, 5sn ver
+      durum.bekleyenHarf = secilen.harf;
+      UI.bekleyenGoster(secilen.harf, BEKLEME_SURE, _bekleyenSureDoldu);
     } else {
-      // Yanlış — kısa bekleyip düş
-      setTimeout(() => {
-        _yanlisHarflerDus([durum.aktifHarfler[index]]);
-        _yeniBorular();
-      }, 400);
-    }
-  }
-
-  // ── BEKLEYEN ──
-  function bekleyenTezgahaKoy(hedefIndex) {
-    if (!durum.bekleyenHarf) return;
-
-    const basarili = Grid.bekleyenKoy(durum.bekleyenHarf, hedefIndex);
-    if (basarili) {
-      durum.bekleyenHarf = null;
-      UI.bekleyenGizle();
-      // Eğer hâlâ eksik hücre varsa yeni boru getirme — bekle
-      // Eksik kalmadıysa grid kontrol zaten çalıştı
-      if (!Grid.getEksikVar()) {
-        _yeniBorular();
-      } else {
-        _yeniBorular();
-      }
+      // Yanlış — o harf + tezgahtaki harfler zone d'ye
+      _yanlisHarflerDus([secilen.harf]);
+      _yeniBorular();
     }
   }
 
   function _bekleyenSureDoldu() {
-    // 5sn doldu — bekleyen harf + tezgahtaki harfler düşer
+    // 5sn doldu, oyuncu yerleştirmedi
+    // Bekleyen harf + tezgahtaki tüm harfler zone d'ye
     if (durum.bekleyenHarf) {
-      const tezgahHarfleri = Grid.getTumHarfler();
-      _yanlisHarflerDus([durum.bekleyenHarf, ...tezgahHarfleri]);
+      _yanlisHarflerDus([durum.bekleyenHarf]);
     }
     durum.bekleyenHarf = null;
+    UI.bekleyenGizle();
 
-    Grid.temizle();
+    // Tezgahtaki harfleri de düşür
+    _tezgahHarfleriniDusur();
     _yeniKelimeYukle();
     _yeniBorular();
   }
 
-  // ── YANLIŞ ──
+  function _tezgahHarfleriniDusur() {
+    // Tezgahtaki dolu harfleri zone d'ye ekle
+    const hucreler = document.querySelectorAll('.tezgah-hucre.dolu');
+    const harfler = Array.from(hucreler).map(h => h.textContent);
+    if (harfler.length > 0) _yanlisHarflerDus(harfler);
+    Grid.temizle();
+  }
+
+  // Bekleyen harf tezgaha tıklanınca (UI'dan çağrılacak)
+  function bekleyenYerlestir() {
+    if (!durum.bekleyenHarf) return;
+    const basarili = Grid.harfEkle(durum.bekleyenHarf);
+    if (basarili) {
+      durum.bekleyenHarf = null;
+      UI.bekleyenGizle();
+      _yeniBorular();
+    }
+  }
+
+  // ── YANLIŞ HARFLER ──
   function _yanlisHarflerDus(harfler) {
-    if (!harfler || harfler.length === 0) return;
     UI.yanlisEkle(harfler);
     _oyunBitiKontrol();
   }
 
   function _oyunBitiKontrol() {
-    const zoneD  = document.getElementById('zone-d');
+    // Zone d yüksekliği zone b'ye dayanıyor mu?
+    const zoneD = document.getElementById('zone-d');
+    const zoneB = document.getElementById('zone-b');
     const yanlis = document.getElementById('yanlis-grid');
-    if (!zoneD || !yanlis) return;
 
-    const hucreW   = zoneD.clientWidth / 8;
-    const satirSay = Math.ceil(yanlis.children.length / 8);
-    const doluH    = satirSay * (hucreW + 2);
+    if (!zoneD || !zoneB || !yanlis) return;
 
-    if (doluH >= zoneD.clientHeight) {
+    const dRect = zoneD.getBoundingClientRect();
+    const yanlisDolu = yanlis.children.length;
+
+    // Yaklaşık hesap: her satır 8 hücre
+    const satirSayisi = Math.ceil(yanlisDolu / 8);
+    const hucreYukseklik = zoneD.clientWidth / 8; // kare hücre
+    const doluYukseklik = satirSayisi * (hucreYukseklik + 2);
+
+    if (doluYukseklik >= zoneD.clientHeight) {
       _oyunBitti();
     }
   }
 
   function _oyunBitti() {
-    if (durum.oyunBitti) return;
     durum.oyunBitti = true;
     UI.bekleyenGizle();
     setTimeout(() => {
@@ -192,8 +232,16 @@ const Game = (() => {
     }, 500);
   }
 
-  window.addEventListener('DOMContentLoaded', () => init());
+  // DOMContentLoaded
+  window.addEventListener('DOMContentLoaded', () => {
+    // Bekleyen harfe tıklanınca yerleştir
+    document.getElementById('bekleyen-harf').addEventListener('click', () => {
+      bekleyenYerlestir();
+    });
 
-  return { init, harfSec, bekleyenTezgahaKoy };
+    init();
+  });
+
+  return { init, harfSec, bekleyenYerlestir };
 
 })();
