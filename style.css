@@ -370,3 +370,18 @@ body > * {
 }
 
 .puan-pop { animation: puan-pop 0.4s ease; }
+body > * {
+  width: 100%;
+  max-width: 480px;
+}
+
+#zone-d {
+  width: 100%;
+  max-width: 480px;
+}
+
+#yanlis-grid {
+  max-width: 480px;
+  left: 50%;
+  transform: translateX(-50%);
+}
