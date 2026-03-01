@@ -176,6 +176,16 @@ const UI = (() => {
           div.classList.add('surukle-ustu');
         }, { passive: true });
 
+        div.addEventListener('touchmove', (e) => {
+          e.preventDefault();
+          const touch = e.touches[0];
+          const hedef = document.elementFromPoint(touch.clientX, touch.clientY);
+          document.querySelectorAll('.tezgah-hucre').forEach(d => d.classList.remove('surukle-ustu'));
+          if (hedef && hedef.classList.contains('tezgah-hucre')) {
+            hedef.classList.add('surukle-ustu');
+          }
+        }, { passive: false });
+
       } else if (h.eksik) {
         div.classList.add('eksik');
       }
