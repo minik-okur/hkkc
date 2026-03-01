@@ -24,20 +24,23 @@
   touch-action: manipulation;
 }
 
-html, body {
+html {
   width: 100%; height: 100%;
   overflow: hidden;
   background: var(--bg);
+  display: flex;
+  justify-content: center;
+}
+
+body {
+  width: 100%;
+  max-width: 480px;
+  height: 100%;
+  overflow: hidden;
   color: var(--text);
   font-family: 'Courier New', monospace;
   display: flex;
   flex-direction: column;
-  align-items: center;
-}
-
-body > * {
-  width: 100%;
-  max-width: 480px;
 }
 
 /* ══════════════════════════════
@@ -370,18 +373,3 @@ body > * {
 }
 
 .puan-pop { animation: puan-pop 0.4s ease; }
-body > * {
-  width: 100%;
-  max-width: 480px;
-}
-
-#zone-d {
-  width: 100%;
-  max-width: 480px;
-}
-
-#yanlis-grid {
-  max-width: 480px;
-  left: 50%;
-  transform: translateX(-50%);
-}
