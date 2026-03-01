@@ -249,14 +249,14 @@ const Words = (() => {
     return sev.kelimeler[sira % sev.kelimeler.length];
   }
 
-  function getEksikSayisi(sevNo, sira) {
-    // Her sözde: 1. kelime 1 eksik, 2. kelime 2 eksik ... 5. kelime 5 eksik
-    return Math.min(sira + 1, 5);
+  function getEksikSayisi(sevNo) {
+    // Her 4 seviyede 1 artış
+    // 1-4: 1 eksik, 5-8: 2 eksik, 9-12: 3, 13-16: 4, 17-20: 5
+    return Math.min(Math.ceil(sevNo / 4), 5);
   }
 
-  function getBoruHarfSayisi(sevNo, sira) {
-    const eksik = getEksikSayisi(sevNo, sira);
-    // eksik + 2 yanlış (min 3)
+  function getBoruHarfSayisi(sevNo) {
+    const eksik = getEksikSayisi(sevNo);
     return Math.max(3, eksik + 2);
   }
 

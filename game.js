@@ -46,7 +46,8 @@ const Game = (() => {
   // ── KELİME ──
   function _yeniKelimeYukle() {
     const veri = Words.getKelime(durum.seviye, durum.kelimeSira);
-    const eksik = Words.getEksikSayisi(durum.seviye, durum.kelimeSira);
+    const eksik = Words.getEksikSayisi(durum.seviye);
+    console.log('SEVİYE:', durum.seviye, 'SIRA:', durum.kelimeSira, 'KELİME:', veri.kelime, 'EKSİK:', eksik);
 
     Grid.init(veri.kelime, eksik, _kelimeTamam);
   }
@@ -106,7 +107,7 @@ const Game = (() => {
     const dogru = eksikHarfler[Math.floor(Math.random() * eksikHarfler.length)];
 
     // Toplam harf sayısı (boru başına dağıtılacak)
-    const toplamHarf = Words.getBoruHarfSayisi(durum.seviye, durum.kelimeSira);
+    const toplamHarf = Words.getBoruHarfSayisi(durum.seviye);
 
     // Doğru boru indexi
     durum.dogruIndex = Math.floor(Math.random() * BORU_SAYISI);
