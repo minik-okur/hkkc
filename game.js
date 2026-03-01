@@ -87,8 +87,7 @@ const Game = (() => {
   function _yeniBorular() {
     if (durum.oyunBitti) return;
 
-    // 3 harf üret, 1 tanesi doğru (kelimeyle alakalı veya rastgele)
-    const veri = Words.getKelime(durum.seviye, durum.kelimeSira);
+    // 3 harf üret, 1 tanesi doğru (tezgahta eksik olan harflerden)
     const eksikHarfler = Grid.getEksikHarfler();
     if (eksikHarfler.length === 0) return;
     const dogru = eksikHarfler[Math.floor(Math.random() * eksikHarfler.length)];
@@ -96,7 +95,7 @@ const Game = (() => {
 
     const harfler = Array(BORU_SAYISI).fill(null).map((_, i) => {
       if (i === durum.dogruIndex) return dogru;
-      return _rastgeleHarf([dogru, ...eksikHarfler]);
+      return _rastgeleHarf([...eksikHarfler]);
     });
 
     durum.aktifBorular = harfler.map((h, i) => ({
@@ -137,7 +136,7 @@ const Game = (() => {
       UI.bekleyenGoster(secilen.harf, BEKLEME_SURE, _bekleyenSureDoldu);
       _yeniBorular();
     } else {
-      // Yanlış — o harf zone d'ye
+      // Yanlış — o harf + tezgahtaki harfler zone d'ye
       _yanlisHarflerDus([secilen.harf]);
       _yeniBorular();
     }
