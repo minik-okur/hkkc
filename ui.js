@@ -42,11 +42,11 @@ const UI = (() => {
       harfler.join(' · ');
   }
 
-  function setBorular(harfler) {
-    // harfler: ['A','F','?'] — hepsi nötr başlar
+  function setBorular(borular) {
+    // borular: [{ harfler: ['A','B'], dogru: bool }]
     const el = document.getElementById('borular');
     el.innerHTML = '';
-    harfler.forEach((harf, i) => {
+    borular.forEach((boru, i) => {
       const wrap = document.createElement('div');
       wrap.className = 'boru-wrap';
 
@@ -56,8 +56,16 @@ const UI = (() => {
 
       const kutu = document.createElement('div');
       kutu.className = 'boru-harf';
-      kutu.textContent = harf;
       kutu.dataset.index = i;
+
+      // Birden fazla harf varsa alt alta göster
+      boru.harfler.forEach(h => {
+        const span = document.createElement('span');
+        span.className = 'boru-harf-tek';
+        span.textContent = h;
+        kutu.appendChild(span);
+      });
+
       kutu.addEventListener('click', () => {
         if (typeof Game !== 'undefined') Game.harfSec(i);
       });
@@ -69,7 +77,6 @@ const UI = (() => {
   }
 
   function boruSonuc(index, dogruMu) {
-    // Seçimden sonra renk göster
     const borular = document.querySelectorAll('.boru-harf');
     const ok_lar = document.querySelectorAll('.boru-ok');
     if (borular[index]) {
@@ -298,6 +305,28 @@ const UI = (() => {
     document.getElementById('hikaye-metin').textContent = '';
   }
 
+  // ── SEVİYE SONU OVERLAY ──
+  function seviyeSonuGoster(seviye, soz, kaynak, devamCallback) {
+    const overlay = document.getElementById('seviye-sonu');
+    const sevEl = document.getElementById('ss-seviye');
+    const sozEl = document.getElementById('ss-soz');
+    const kaynakEl = document.getElementById('ss-kaynak');
+    const btn = document.getElementById('ss-devam');
+
+    sevEl.textContent = 'SEVİYE ' + seviye + ' TAMAMLANDI';
+    sozEl.textContent = '« ' + soz + ' »';
+    kaynakEl.textContent = '— ' + kaynak;
+
+    overlay.classList.remove('gizli');
+    overlay.classList.add('aktif');
+
+    btn.onclick = () => {
+      overlay.classList.remove('aktif');
+      overlay.classList.add('gizli');
+      if (devamCallback) devamCallback();
+    };
+  }
+
   return {
     setPuan, setKelimeSayisi, setSeviye, setCanlar,
     setSiradaki, setBorular, boruSonuc,
@@ -305,6 +334,7 @@ const UI = (() => {
     tezgahRender, tezgahFlash, tezgahSalla,
     yanlisEkle, yanlisTemizle, yanlisYukseklik,
     hikayeEkle, hikayeTemizle,
+    seviyeSonuGoster,
   };
 
 })();
