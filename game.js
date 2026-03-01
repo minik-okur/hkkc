@@ -56,6 +56,7 @@ const Game = (() => {
 
     // Flash + puan
     UI.tezgahFlash('yesil');
+    Ses.kelimeTamam();
     const puan = kelime.length * 10 * durum.seviye;
     durum.puan += puan;
     UI.setPuan(durum.puan);
@@ -74,6 +75,7 @@ const Game = (() => {
       if (durum.seviye < Words.toplamSeviye()) {
         durum.seviye++;
         UI.setSeviye(durum.seviye);
+        Ses.seviyeGecis();
       }
     }
 
@@ -128,6 +130,7 @@ const Game = (() => {
 
     if (secilen.dogru) {
       UI.boruSonuc(index, true);
+      Ses.dogru();
       // Can kazan (max 3)
       if (durum.can < 3) {
         durum.can++;
@@ -139,6 +142,7 @@ const Game = (() => {
       _yeniBorular();
     } else {
       UI.boruSonuc(index, false);
+      Ses.yanlis();
       // Yanlış — o harf + tezgahtaki harfler zone d'ye
       _yanlisHarflerDus([secilen.harf]);
       _yeniBorular();
@@ -147,6 +151,7 @@ const Game = (() => {
 
   function _bekleyenSureDoldu() {
     // 5sn doldu, oyuncu yerleştirmedi
+    Ses.sureDoldu();
     // Bekleyen harf + tezgahtaki tüm harfler zone d'ye
     if (durum.bekleyenHarf) {
       _yanlisHarflerDus([durum.bekleyenHarf]);
@@ -209,6 +214,7 @@ const Game = (() => {
   function _oyunBitti() {
     durum.oyunBitti = true;
     UI.bekleyenGizle();
+    Ses.oyunBitti();
     setTimeout(() => {
       alert(`OYUN BİTTİ!\nPuan: ${durum.puan}\nKelime: ${durum.kelimeSira}\nSeviye: ${durum.seviye}`);
       init();
