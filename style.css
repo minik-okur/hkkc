@@ -188,8 +188,11 @@ body {
   font-size: 18px;
   font-weight: bold;
   color: var(--altin);
+  cursor: grab;
   animation: pulse 1s ease-in-out infinite;
 }
+
+#bekleyen-harf:active { cursor: grabbing; transform: scale(0.9); }
 
 #bekleyen-harf.gizli {
   visibility: hidden;

@@ -88,6 +88,19 @@ const Grid = (() => {
     return true;
   }
 
+  function harfEkleIndex(harf, index) {
+    // Belirli hücreye ekle (sürükle-bırak için)
+    if (index < 0 || index >= tezgah.length) return false;
+    const h = tezgah[index];
+    if (!h.eksik) return false; // sadece eksik hücreye bırakılabilir
+    h.harf  = harf;
+    h.eksik = false;
+    h.bos   = false;
+    _render();
+    _kontrol();
+    return true;
+  }
+
   function _kontrol() {
     // Tezgahtaki harfleri oku, hedef kelimeyle karşılaştır
     const harfler = tezgah.filter(h => h.harf).map(h => h.harf);
@@ -127,6 +140,6 @@ const Grid = (() => {
     return harfler;
   }
 
-  return { init, harfEkle, temizle, getEksikVar, getEksikHarfler };
+  return { init, harfEkle, harfEkleIndex, temizle, getEksikVar, getEksikHarfler };
 
 })();

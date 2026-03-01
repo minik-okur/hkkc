@@ -78,6 +78,7 @@ const UI = (() => {
   let _timerSure = 5000;
   let _timerBaslangic = null;
   let _timerRaf = null;
+  let _touchKaynak = null;
 
   function bekleyenGoster(harf, sureSaniye, bitisCallback) {
     const el  = document.getElementById('bekleyen-harf');
@@ -85,8 +86,27 @@ const UI = (() => {
 
     el.textContent = harf;
     el.classList.remove('gizli');
+    el.draggable = true;
+    el.dataset.kaynak = 'bekleyen';
     dol.style.transition = 'none';
     dol.style.width = '100%';
+
+    // Drag event (masaüstü)
+    el.ondragstart = (e) => {
+      e.dataTransfer.setData('kaynak', 'bekleyen');
+      e.dataTransfer.effectAllowed = 'move';
+    };
+    // Touch event (mobil)
+    el.ontouchstart = () => { _touchKaynak = 'bekleyen'; };
+    el.ontouchend = (e) => {
+      const touch = e.changedTouches[0];
+      const hedef = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (hedef && hedef.classList.contains('tezgah-hucre')) {
+        const hedefIndex = parseInt(hedef.dataset.index);
+        if (typeof Game !== 'undefined') Game.bekleyenYerlestir(hedefIndex);
+      }
+      _touchKaynak = null;
+    };
 
     _timerSure = sureSaniye * 1000;
     _timerBaslangic = performance.now();
@@ -117,6 +137,7 @@ const UI = (() => {
     const el = document.getElementById('bekleyen-harf');
     el.classList.add('gizli');
     el.textContent = '';
+    el.draggable = false;
     document.getElementById('timer-fill').style.width = '0%';
   }
 
@@ -165,7 +186,11 @@ const UI = (() => {
       div.addEventListener('drop', (e) => {
         e.preventDefault();
         div.classList.remove('surukle-ustu');
-        if (suruklenen !== null && suruklenen !== i) {
+        // Bekleyen harften mi geliyor?
+        const bekleyenMi = e.dataTransfer.getData('kaynak') === 'bekleyen';
+        if (bekleyenMi) {
+          if (typeof Game !== 'undefined') Game.bekleyenYerlestir(i);
+        } else if (suruklenen !== null && suruklenen !== i) {
           onDrop(suruklenen, i);
           suruklenen = null;
         }
@@ -176,11 +201,16 @@ const UI = (() => {
         const hedef = document.elementFromPoint(touch.clientX, touch.clientY);
         if (hedef && hedef.classList.contains('tezgah-hucre')) {
           const hedefIndex = parseInt(hedef.dataset.index);
-          if (suruklenen !== null && suruklenen !== hedefIndex) {
+          // Bekleyen harften mi?
+          if (_touchKaynak === 'bekleyen') {
+            if (typeof Game !== 'undefined') Game.bekleyenYerlestir(hedefIndex);
+            _touchKaynak = null;
+          } else if (suruklenen !== null && suruklenen !== hedefIndex) {
             onDrop(suruklenen, hedefIndex);
           }
         }
         suruklenen = null;
+        _touchKaynak = null;
         document.querySelectorAll('.tezgah-hucre').forEach(d => d.classList.remove('surukle-ustu'));
       }, { passive: true });
 

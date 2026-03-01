@@ -165,12 +165,10 @@ const Game = (() => {
     Grid.temizle();
   }
 
-  // Bekleyen harf tezgaha tıklanınca (UI'dan çağrılacak)
-  // Şimdilik: bekleyen harfi ilk eksik yere otomatik koy
-  // İleride: oyuncu sürükleyerek koyacak
-  function bekleyenYerlestir() {
+  // Bekleyen harf tezgaha sürüklenince
+  function bekleyenYerlestir(hedefIndex) {
     if (!durum.bekleyenHarf) return;
-    const basarili = Grid.harfEkle(durum.bekleyenHarf);
+    const basarili = Grid.harfEkleIndex(durum.bekleyenHarf, hedefIndex);
     if (basarili) {
       durum.bekleyenHarf = null;
       UI.bekleyenGizle();
@@ -216,11 +214,6 @@ const Game = (() => {
 
   // DOMContentLoaded
   window.addEventListener('DOMContentLoaded', () => {
-    // Bekleyen harfe tıklanınca yerleştir
-    document.getElementById('bekleyen-harf').addEventListener('click', () => {
-      bekleyenYerlestir();
-    });
-
     init();
   });
 
