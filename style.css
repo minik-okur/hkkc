@@ -364,22 +364,3 @@ html, body {
 }
 
 .puan-pop { animation: puan-pop 0.4s ease; }
-
-/* ══════════════════════════════
-   MASAÜSTÜ — Ortalanmış Mobil Kutu
-══════════════════════════════ */
-@media (min-width: 480px) {
-  body {
-    align-items: center;
-    background: #05050a;
-  }
-
-  body > * {
-    width: 100%;
-    max-width: 420px;
-  }
-
-  #zone-d {
-    max-width: 420px;
-  }
-}
