@@ -42,8 +42,8 @@ const UI = (() => {
       harfler.join(' · ');
   }
 
-  function setBorular(harfler, dogru_index) {
-    // harfler: ['A','F','?']  dogru_index: hangi index doğru
+  function setBorular(harfler) {
+    // harfler: ['A','F','?'] — hepsi nötr başlar
     const el = document.getElementById('borular');
     el.innerHTML = '';
     harfler.forEach((harf, i) => {
@@ -52,15 +52,14 @@ const UI = (() => {
 
       const ust = document.createElement('div');
       ust.className = 'boru-ust';
-      // siradaki bir sonraki harf (game.js verir)
       ust.textContent = '';
 
       const ok = document.createElement('div');
-      ok.className = 'boru-ok ' + (i === dogru_index ? 'dogru' : 'yanlis');
+      ok.className = 'boru-ok';
       ok.textContent = '▼';
 
       const kutu = document.createElement('div');
-      kutu.className = 'boru-harf ' + (i === dogru_index ? 'dogru' : 'yanlis');
+      kutu.className = 'boru-harf';
       kutu.textContent = harf;
       kutu.dataset.index = i;
       kutu.addEventListener('click', () => {
@@ -72,6 +71,17 @@ const UI = (() => {
       wrap.appendChild(kutu);
       el.appendChild(wrap);
     });
+  }
+
+  function boruSonuc(index, dogruMu) {
+    // Seçimden sonra renk göster
+    const borular = document.querySelectorAll('.boru-harf');
+    const ok_lar = document.querySelectorAll('.boru-ok');
+    if (borular[index]) {
+      const sinif = dogruMu ? 'dogru' : 'yanlis';
+      borular[index].classList.add(sinif);
+      if (ok_lar[index]) ok_lar[index].classList.add(sinif);
+    }
   }
 
   // ── BEKLEYEN HARF ──
@@ -285,7 +295,7 @@ const UI = (() => {
 
   return {
     setPuan, setKelimeSayisi, setSeviye, setCanlar,
-    setSiradaki, setBorular,
+    setSiradaki, setBorular, boruSonuc,
     bekleyenGoster, bekleyenGizle,
     tezgahRender, tezgahFlash, tezgahSalla,
     yanlisEkle, yanlisTemizle, yanlisYukseklik,

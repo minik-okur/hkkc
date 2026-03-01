@@ -80,6 +80,7 @@ const Game = (() => {
     setTimeout(() => {
       Grid.temizle();
       _yeniKelimeYukle();
+      _yeniBorular();
     }, 700);
   }
 
@@ -107,7 +108,7 @@ const Game = (() => {
     durum.siradaki = Array(3).fill(null).map(() => _rastgeleHarf([]));
 
     UI.setSiradaki(durum.siradaki);
-    UI.setBorular(harfler, durum.dogruIndex);
+    UI.setBorular(harfler);
   }
 
   function _rastgeleHarf(haric) {
@@ -126,6 +127,7 @@ const Game = (() => {
     if (!secilen) return;
 
     if (secilen.dogru) {
+      UI.boruSonuc(index, true);
       // Can kazan (max 3)
       if (durum.can < 3) {
         durum.can++;
@@ -136,6 +138,7 @@ const Game = (() => {
       UI.bekleyenGoster(secilen.harf, BEKLEME_SURE, _bekleyenSureDoldu);
       _yeniBorular();
     } else {
+      UI.boruSonuc(index, false);
       // Yanlış — o harf + tezgahtaki harfler zone d'ye
       _yanlisHarflerDus([secilen.harf]);
       _yeniBorular();
