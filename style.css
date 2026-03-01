@@ -24,10 +24,19 @@
   touch-action: manipulation;
 }
 
-html, body {
+html {
   width: 100%; height: 100%;
   overflow: hidden;
   background: var(--bg);
+  display: flex;
+  justify-content: center;
+}
+
+body {
+  width: 100%;
+  max-width: 480px;
+  height: 100%;
+  overflow: hidden;
   color: var(--text);
   font-family: 'Courier New', monospace;
   display: flex;
