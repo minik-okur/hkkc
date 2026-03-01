@@ -370,7 +370,6 @@ html, body {
 @media (min-width: 480px) {
   body {
     align-items: center;
-    justify-content: center;
     background: #05050a;
   }
 
@@ -381,5 +380,6 @@ html, body {
   #zone-d {
     width: 420px;
     flex: 1;
+    position: relative;
   }
 }
