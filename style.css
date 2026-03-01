@@ -4,15 +4,15 @@
    ============================================= */
 
 :root {
-  --bg:       #0f1628;
-  --surface:  #1a2340;
+  --bg:       #0b1120;
+  --surface:  #131d38;
   --border:   #2d3a5c;
-  --accent:   #38bdf8;
+  --accent:   #6366f1;
   --yesil:    #34d399;
   --kirmizi:  #fb7185;
   --altin:    #fbbf24;
   --text:     #e2e8f0;
-  --dim:      #64748b;
+  --dim:      #94a3b8;
   --cols: 8;
 }
 
