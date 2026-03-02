@@ -1,18 +1,18 @@
 /* =============================================
-   STYLE.CSS — Merkez Stil
-   Tüm modüller buraya bağlıdır.
+   STYLE.CSS — Doğa Teması 🌿🦋🌸
+   Açık, canlı, renkli — karanlık yok!
    ============================================= */
 
 :root {
-  --bg:       #1a1a2e;
-  --surface:  #16213e;
-  --border:   #0f3460;
-  --accent:   #e94560;
-  --yesil:    #00ff9f;
-  --kirmizi:  #ff2e63;
-  --altin:    #f5c542;
-  --text:     #eaf0ff;
-  --dim:      #8892b0;
+  --bg:       #e8f5e9;
+  --surface:  #c8e6c9;
+  --border:   #81c784;
+  --accent:   #e91e63;
+  --yesil:    #2e7d32;
+  --kirmizi:  #d32f2f;
+  --altin:    #f57f17;
+  --text:     #1b5e20;
+  --dim:      #558b2f;
   --cols: 8;
 }
 
@@ -27,7 +27,7 @@
 html {
   width: 100%; height: 100dvh;
   overflow: hidden;
-  background: #0f0f23;
+  background: #43a047;
   display: flex;
   justify-content: center;
 }
@@ -37,7 +37,7 @@ body {
   max-width: 480px;
   height: 100dvh;
   overflow: hidden;
-  background: var(--bg);
+  background: linear-gradient(180deg, #81d4fa 0%, #aed581 40%, #66bb6a 100%);
   color: var(--text);
   font-family: 'Courier New', monospace;
   display: flex;
@@ -45,15 +45,15 @@ body {
 }
 
 /* ══════════════════════════════
-   ZONE A — SKOR
+   ZONE A — SKOR (Gökyüzü mavisi)
 ══════════════════════════════ */
 #zone-a {
   display: flex;
   justify-content: space-around;
   align-items: center;
   padding: 6px 8px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  background: linear-gradient(135deg, #42a5f5, #1e88e5);
+  border-bottom: 2px solid #1565c0;
   flex-shrink: 0;
 }
 
@@ -67,13 +67,14 @@ body {
 .lbl {
   font-size: 8px;
   letter-spacing: 2px;
-  color: var(--dim);
+  color: #bbdefb;
 }
 
 #puan, #kelime-sayisi, #seviye {
   font-size: 20px;
   font-weight: bold;
-  color: var(--text);
+  color: #ffffff;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
 }
 
 #canlar {
@@ -83,11 +84,11 @@ body {
 }
 
 /* ══════════════════════════════
-   ZONE B — BORULAR
+   ZONE B — BORULAR (Çiçek pembesi)
 ══════════════════════════════ */
 #zone-b {
-  background: #1a2744;
-  border-bottom: 1px solid var(--border);
+  background: linear-gradient(135deg, #f8bbd0, #f48fb1);
+  border-bottom: 2px solid #ec407a;
   padding: 2px 8px 2px;
   flex-shrink: 0;
   text-align: center;
@@ -96,14 +97,14 @@ body {
 #siradaki-label {
   font-size: 7px;
   letter-spacing: 3px;
-  color: var(--dim);
+  color: #880e4f;
   margin-bottom: 1px;
 }
 
 #siradaki-harfler {
   font-size: 9px;
   letter-spacing: 6px;
-  color: var(--dim);
+  color: #ad1457;
   margin-bottom: 4px;
 }
 
@@ -122,7 +123,7 @@ body {
 
 .boru-ok {
   font-size: 8px;
-  color: var(--dim);
+  color: #880e4f;
   line-height: 1;
 }
 .boru-ok.dogru   { color: var(--yesil); }
@@ -139,15 +140,15 @@ body {
   gap: 1px;
   padding: 3px 6px;
   font-weight: bold;
-  border: 2px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
+  border: 2px solid #ec407a;
+  background: #fff;
+  color: #880e4f;
   cursor: pointer;
   transition: transform 0.1s, border-color 0.2s;
 }
 .boru-harf:active { transform: scale(0.9); }
-.boru-harf.dogru  { border-color: var(--yesil); color: var(--yesil); background: rgba(0,255,159,0.15); box-shadow: 0 0 12px rgba(0,255,159,0.4); }
-.boru-harf.yanlis { border-color: var(--kirmizi); color: var(--kirmizi); background: rgba(255,46,99,0.15); }
+.boru-harf.dogru  { border-color: #2e7d32; color: #fff; background: #43a047; box-shadow: 0 0 10px rgba(46,125,50,0.5); }
+.boru-harf.yanlis { border-color: #d32f2f; color: #fff; background: #e53935; }
 
 .boru-harf-tek {
   font-size: 13px;
@@ -155,7 +156,7 @@ body {
 }
 
 /* ══════════════════════════════
-   BEKLEYEN HARF
+   BEKLEYEN HARF (Güneş sarısı)
 ══════════════════════════════ */
 #bekleyen-alan {
   display: flex;
@@ -163,8 +164,8 @@ body {
   align-items: center;
   gap: 3px;
   padding: 2px 0 2px;
-  background: #1e1145;
-  border-bottom: 1px solid var(--border);
+  background: linear-gradient(135deg, #fff9c4, #fff176);
+  border-bottom: 2px solid #f9a825;
   flex-shrink: 0;
   min-height: 0;
 }
@@ -172,17 +173,18 @@ body {
 #bekleyen-harf {
   width: 36px;
   height: 36px;
-  border: 2px solid var(--altin);
-  background: rgba(255,215,0,0.12);
+  border: 3px solid #e65100;
+  background: #ff9800;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 18px;
   font-weight: bold;
-  color: var(--altin);
+  color: #fff;
   cursor: grab;
   animation: pulse 1s ease-in-out infinite;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
 }
 
 #bekleyen-harf:active { cursor: grabbing; transform: scale(0.9); }
@@ -193,13 +195,13 @@ body {
 
 @keyframes pulse {
   0%,100% { opacity: 1; transform: scale(1); }
-  50%      { opacity: 0.6; transform: scale(0.95); }
+  50%      { opacity: 0.7; transform: scale(0.95); }
 }
 
 #timer-bar {
   width: 80px;
   height: 3px;
-  background: var(--border);
+  background: #ffe082;
   border-radius: 2px;
   overflow: hidden;
 }
@@ -207,18 +209,18 @@ body {
 #timer-fill {
   height: 100%;
   width: 100%;
-  background: var(--altin);
+  background: #e65100;
   border-radius: 2px;
   transition: width linear;
 }
 
 /* ══════════════════════════════
-   ZONE C — TEZGAH
+   ZONE C — TEZGAH (Çimen yeşili)
 ══════════════════════════════ */
 #zone-c {
-  border-top: 2px solid #e94560;
-  border-bottom: 2px solid #e94560;
-  background: #0d2137;
+  border-top: 3px solid #33691e;
+  border-bottom: 3px solid #33691e;
+  background: linear-gradient(135deg, #a5d6a7, #81c784);
   padding: 6px 8px;
   flex-shrink: 0;
 }
@@ -237,38 +239,40 @@ body {
   justify-content: center;
   font-size: clamp(11px, 3.5cqw, 16px);
   font-weight: bold;
-  border: 1px solid var(--border);
-  background: #162447;
+  border: 2px solid #4caf50;
+  background: #e8f5e9;
   color: var(--text);
   position: relative;
   transition: transform 0.15s, border-color 0.2s;
 }
 
 .tezgah-hucre.dolu {
-  border-color: #e94560;
-  background: rgba(233,69,96,0.2);
-  color: #ff6b81;
+  border-color: #1565c0;
+  background: #bbdefb;
+  color: #0d47a1;
   cursor: grab;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
 }
 
 .tezgah-hucre.dolu:active { cursor: grabbing; transform: scale(0.9); }
 
 .tezgah-hucre.eksik {
-  border: 1px dashed #0f3460;
-  background: #0c1a30;
+  border: 2px dashed #a5d6a7;
+  background: rgba(255,255,255,0.4);
   color: transparent;
 }
 
 .tezgah-hucre.surukle-ustu {
-  border-color: var(--accent);
-  background: rgba(233,69,96,0.15);
+  border-color: #e91e63;
+  background: rgba(233,30,99,0.15);
 }
 
 .tezgah-hucre.dogru-kelime {
-  border-color: var(--yesil);
-  color: var(--yesil);
-  background: rgba(0,255,159,0.2);
+  border-color: #2e7d32;
+  color: #fff;
+  background: #43a047;
   animation: flash-yesil 0.4s ease;
+  box-shadow: 0 0 10px rgba(46,125,50,0.5);
 }
 
 @keyframes flash-yesil {
@@ -277,12 +281,13 @@ body {
 }
 
 /* ══════════════════════════════
-   ZONE D — YANLIŞ HARFLER
+   ZONE D — YANLIŞ HARFLER (Açık çimen)
 ══════════════════════════════ */
 #zone-d {
   flex: 1;
   overflow: hidden;
   position: relative;
+  background: linear-gradient(180deg, #dcedc8 0%, #c5e1a5 50%, #aed581 100%);
 }
 
 #yanlis-grid {
@@ -313,16 +318,16 @@ body {
   to   { transform: translateY(0);     opacity: 1; }
 }
 
-.yh-r { background: rgba(233,69,96,0.3);  border: 1px solid #e94560; color: #ff6b81; }
-.yh-g { background: rgba(0,255,159,0.2);  border: 1px solid #00ff9f; color: #00ff9f; }
-.yh-y { background: rgba(245,197,66,0.25); border: 1px solid #f5c542; color: #f5c542; }
+.yh-r { background: #ef9a9a; border: 2px solid #e53935; color: #b71c1c; }
+.yh-g { background: #a5d6a7; border: 2px solid #43a047; color: #1b5e20; }
+.yh-y { background: #ffe082; border: 2px solid #f9a825; color: #e65100; }
 
 /* ══════════════════════════════
-   ZONE E — HİKAYE
+   ZONE E — HİKAYE (Kelebek moru)
 ══════════════════════════════ */
 #zone-e {
-  background: var(--surface);
-  border-top: 1px solid var(--border);
+  background: linear-gradient(135deg, #ce93d8, #ab47bc);
+  border-top: 2px solid #7b1fa2;
   padding: 5px 10px;
   flex-shrink: 0;
   overflow: hidden;
@@ -336,9 +341,10 @@ body {
 #hikaye-metin {
   display: inline-block;
   font-size: 11px;
-  color: #8892b0;
+  color: #fff;
   font-style: italic;
   white-space: nowrap;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
 }
 
 #hikaye-metin.kayan {
@@ -363,7 +369,7 @@ body {
 
 @keyframes puan-pop {
   0%   { transform: scale(1); }
-  50%  { transform: scale(1.4); color: var(--altin); }
+  50%  { transform: scale(1.4); color: #e65100; }
   100% { transform: scale(1); }
 }
 
@@ -375,7 +381,7 @@ body {
 #seviye-sonu {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.92);
+  background: rgba(27,94,32,0.92);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -404,14 +410,14 @@ body {
 #ss-seviye {
   font-size: 12px;
   letter-spacing: 4px;
-  color: var(--altin);
+  color: #ffeb3b;
   margin-bottom: 24px;
   animation: fadeInUp 0.6s ease;
 }
 
 #ss-soz {
   font-size: 18px;
-  color: var(--text);
+  color: #fff;
   font-style: italic;
   line-height: 1.5;
   margin-bottom: 12px;
@@ -420,28 +426,29 @@ body {
 
 #ss-kaynak {
   font-size: 12px;
-  color: var(--dim);
+  color: #a5d6a7;
   margin-bottom: 32px;
   animation: fadeInUp 1s ease;
 }
 
 #ss-devam {
-  background: none;
-  border: 1px solid var(--altin);
-  color: var(--altin);
+  background: #ffeb3b;
+  border: 2px solid #f57f17;
+  color: #33691e;
   padding: 10px 28px;
   border-radius: 6px;
   font-family: 'Courier New', monospace;
   font-size: 14px;
   cursor: pointer;
   letter-spacing: 2px;
+  font-weight: bold;
   transition: background 0.2s, color 0.2s;
   animation: fadeInUp 1.2s ease;
 }
 
 #ss-devam:active {
-  background: var(--altin);
-  color: var(--bg);
+  background: #f57f17;
+  color: #fff;
 }
 
 @keyframes fadeInUp {
