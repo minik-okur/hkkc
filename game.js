@@ -1,15 +1,15 @@
 /* =============================================
    GAME.JS — Oyun Motoru
-   Bagli: index.html
-   Kullanir: Words, UI, Grid
+   Bağlı: index.html
+   Kullanır: Words, UI, Grid
    ============================================= */
 
 const Game = (() => {
 
-  const ALFABE = 'ABCDEFGHIİKLMNOPRSTUYZ'.split('');
+  const ALFABE = 'ABCDEFGHİKLMNOPRSTUYZ'.split('');
   const BORU_SAYISI = 3;
   const BEKLEME_SURE = 5;
-  const MAX_YANLIS = 3;
+  const MAX_YANLIS = 3;   // ← YENİ
 
   let durum = {
     puan:        0,
@@ -22,7 +22,7 @@ const Game = (() => {
     bekleyenTimer: null,
     oyunBitti:   false,
     dogruIndex:  -1,
-    yanlisSecim: 0,
+    yanlisSecim: 0,      // ← YENİ
   };
 
   function init() {
@@ -31,7 +31,7 @@ const Game = (() => {
       aktifBorular: [], siradaki: [],
       bekleyenHarf: null, bekleyenTimer: null,
       oyunBitti: false, dogruIndex: -1,
-      yanlisSecim: 0,
+      yanlisSecim: 0,    // ← YENİ
     };
 
     UI.setCanlar(3);
@@ -46,10 +46,13 @@ const Game = (() => {
     _yeniBorular();
   }
 
+  // ── KELİME ──
   function _yeniKelimeYukle() {
     const veri = Words.getKelime(durum.seviye, durum.kelimeSira);
     const eksik = Words.getEksikSayisi(durum.seviye);
-    durum.yanlisSecim = 0;
+    console.log('SEVİYE:', durum.seviye, 'SIRA:', durum.kelimeSira, 'KELİME:', veri.kelime, 'EKSİK:', eksik);
+
+    durum.yanlisSecim = 0; // ← YENİ: her kelimede sıfırla
     Grid.init(veri.kelime, eksik, _kelimeTamam);
   }
 
@@ -62,6 +65,7 @@ const Game = (() => {
     durum.puan += puan;
     UI.setPuan(durum.puan);
 
+    // ── YENİ: Kelime tamamlayınca +1 can ──
     durum.can++;
     UI.setCanlar(durum.can);
 
@@ -76,14 +80,15 @@ const Game = (() => {
       const sozVeri = Words.getSoz(durum.seviye);
       Ses.seviyeGecis();
       UI.seviyeSonuGoster(durum.seviye, sozVeri.soz, sozVeri.kaynak, () => {
-        durum.can += 2;
-        UI.setCanlar(durum.can);
-
         durum.kelimeSira = 0;
         if (durum.seviye < Words.toplamSeviye()) {
           durum.seviye++;
           UI.setSeviye(durum.seviye);
         }
+        // ── YENİ: Seviye sonu +2 can ──
+        durum.can += 2;
+        UI.setCanlar(durum.can);
+
         UI.yanlisTemizle();
         Grid.temizle();
         _yeniKelimeYukle();
@@ -99,28 +104,43 @@ const Game = (() => {
     }, 700);
   }
 
+  // ── YENİ: KELİME ATLAMA ──
   function _kelimeAtla() {
     UI.tezgahFlash('kirmizi');
     UI.tezgahSalla();
-    _tezgahHarfleriniDusur();
+    Ses.sureDoldu();
 
+    _tezgahHarfleriniDusur();
     durum.kelimeSira++;
-    durum.yanlisSecim = 0;
 
     const sevVeri = Words.getSeviye(durum.seviye);
     if (durum.kelimeSira >= sevVeri.kelimeler.length) {
-      durum.kelimeSira = 0;
-      if (durum.seviye < Words.toplamSeviye()) {
-        durum.seviye++;
-        UI.setSeviye(durum.seviye);
-      }
+      const sozVeri = Words.getSoz(durum.seviye);
+      Ses.seviyeGecis();
+      UI.seviyeSonuGoster(durum.seviye, sozVeri.soz, sozVeri.kaynak, () => {
+        durum.kelimeSira = 0;
+        if (durum.seviye < Words.toplamSeviye()) {
+          durum.seviye++;
+          UI.setSeviye(durum.seviye);
+        }
+        durum.can += 2;
+        UI.setCanlar(durum.can);
+        UI.yanlisTemizle();
+        Grid.temizle();
+        _yeniKelimeYukle();
+        _yeniBorular();
+      });
+      return;
     }
 
-    Grid.temizle();
-    _yeniKelimeYukle();
-    _yeniBorular();
+    setTimeout(() => {
+      Grid.temizle();
+      _yeniKelimeYukle();
+      _yeniBorular();
+    }, 700);
   }
 
+  // ── BORULAR ──
   function _yeniBorular() {
     if (durum.oyunBitti) return;
 
@@ -129,7 +149,9 @@ const Game = (() => {
 
     const dogru = eksikHarfler[Math.floor(Math.random() * eksikHarfler.length)];
     const toplamHarf = Words.getBoruHarfSayisi(durum.seviye);
+
     durum.dogruIndex = Math.floor(Math.random() * BORU_SAYISI);
+
     const boruBasinaHarf = _dagit(toplamHarf, BORU_SAYISI);
 
     const borular = [];
@@ -173,6 +195,7 @@ const Game = (() => {
     return h;
   }
 
+  // ── SEÇİM ──
   function harfSec(index) {
     if (durum.oyunBitti) return;
     if (durum.bekleyenHarf) return;
@@ -183,7 +206,10 @@ const Game = (() => {
     if (secilen.dogru) {
       UI.boruSonuc(index, true);
       Ses.dogru();
-
+      if (durum.can < 3) {
+        durum.can++;
+        UI.setCanlar(durum.can);
+      }
       const dogruHarf = secilen.harfler[0];
       const yanlislar = secilen.harfler.slice(1);
       if (yanlislar.length > 0) _yanlisHarflerDus(yanlislar);
@@ -196,9 +222,10 @@ const Game = (() => {
       Ses.yanlis();
       _yanlisHarflerDus(secilen.harfler);
 
+      // ── YENİ: 3 yanlış → kelime atla ──
       durum.yanlisSecim++;
       if (durum.yanlisSecim >= MAX_YANLIS) {
-        setTimeout(() => _kelimeAtla(), 400);
+        setTimeout(() => _kelimeAtla(), 500);
       } else {
         _yeniBorular();
       }
@@ -235,19 +262,21 @@ const Game = (() => {
     }
   }
 
+  // ── YENİ: İPUCU ──
   function ipucuKullan() {
     if (durum.oyunBitti) return;
     if (durum.can <= 0) return;
-    if (durum.bekleyenHarf) return;
 
-    const basarili = Grid.ipucuDoldur();
+    const basarili = Grid.ipucuYerlestir();
     if (basarili) {
       durum.can--;
       UI.setCanlar(durum.can);
-      Ses.ipucu();
+      Ses.dogru();
+      _yeniBorular();
     }
   }
 
+  // ── YANLIŞ HARFLER ──
   function _yanlisHarflerDus(harfler) {
     UI.yanlisEkle(harfler);
     _oyunBitiKontrol();
@@ -275,13 +304,14 @@ const Game = (() => {
     UI.bekleyenGizle();
     Ses.oyunBitti();
     setTimeout(() => {
-      alert('OYUN BITTI!\nPuan: ' + durum.puan + '\nKelime: ' + durum.kelimeSira + '\nSeviye: ' + durum.seviye);
+      alert('OYUN BİTTİ!\nPuan: ' + durum.puan + '\nKelime: ' + durum.kelimeSira + '\nSeviye: ' + durum.seviye);
       init();
     }, 500);
   }
 
   window.addEventListener('DOMContentLoaded', () => {
     init();
+    document.getElementById('ipucu-btn').addEventListener('click', ipucuKullan);
   });
 
   return { init, harfSec, bekleyenYerlestir, ipucuKullan };
