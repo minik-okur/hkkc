@@ -1,18 +1,13 @@
 /* =============================================
    GRID.JS — Tezgah Durum Yöneticisi
-   Tezgahtaki hücrelerin state'ini tutar.
    Bağlı: index.html
    Kullanır: UI, Words
    ============================================= */
 
 const Grid = (() => {
 
-  // tezgah: [{ harf, eksik, bos }]
-  // harf: string | null
-  // eksik: bool — boş ama doldurulacak
-  // bos: bool — tamamen boş hücre
   let tezgah = [];
-  let hedefKelime = '';  // 'KASAP'
+  let hedefKelime = '';
   let onKelimeTamam = null;
   let onDrop = null;
 
@@ -20,14 +15,11 @@ const Grid = (() => {
     hedefKelime = kelime;
     onKelimeTamam = kelimeTamamCallback;
 
-    // Tezgahı oluştur: 8 hücre
-    // Kelime ortaya hizalanır
     const harfler = kelime.split('');
     const baslangic = Math.floor((8 - harfler.length) / 2);
 
     tezgah = Array(8).fill(null).map(() => ({ harf: null, eksik: false, bos: true }));
 
-    // Rastgele eksik indexler seç (kelime içinden)
     const kelimeIndexler = harfler.map((_, i) => i);
     const eksikIndexler = _rastgeleSecim(kelimeIndexler, eksikSayisi);
 
@@ -38,6 +30,31 @@ const Grid = (() => {
       } else {
         tezgah[pos] = { harf: h, eksik: false, bos: false };
       }
+    });
+
+    // ── YENİ: Dolu harfleri karıştır ──
+    const doluIndexler = [];
+    const doluHarfler = [];
+    tezgah.forEach((h, i) => {
+      if (h.harf) {
+        doluIndexler.push(i);
+        doluHarfler.push(h.harf);
+      }
+    });
+    // Fisher-Yates shuffle
+    for (let i = doluHarfler.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [doluHarfler[i], doluHarfler[j]] = [doluHarfler[j], doluHarfler[i]];
+    }
+    // Doğru sırada kaldıysa tekrar karıştır
+    const halaDogruMu = doluIndexler.every((idx, k) => {
+      return doluHarfler[k] === harfler[idx - baslangic];
+    });
+    if (halaDogruMu && doluHarfler.length > 1) {
+      [doluHarfler[0], doluHarfler[1]] = [doluHarfler[1], doluHarfler[0]];
+    }
+    doluIndexler.forEach((idx, k) => {
+      tezgah[idx].harf = doluHarfler[k];
     });
 
     _render();
@@ -56,10 +73,8 @@ const Grid = (() => {
     const kaynak = tezgah[kaynakIndex];
     const hedef  = tezgah[hedefIndex];
 
-    // Sadece dolu hücreyi eksik veya dolu hücreyle takas et
     if (!kaynak.harf) return;
 
-    // Takas
     const tmpHarf   = hedef.harf;
     const tmpEksik  = hedef.eksik;
     const tmpBos    = hedef.bos;
@@ -77,9 +92,8 @@ const Grid = (() => {
   }
 
   function harfEkle(harf) {
-    // İlk eksik hücreye ekle
     const i = tezgah.findIndex(h => h.eksik);
-    if (i === -1) return false; // eksik hücre yok
+    if (i === -1) return false;
     tezgah[i].harf  = harf;
     tezgah[i].eksik = false;
     tezgah[i].bos   = false;
@@ -89,10 +103,9 @@ const Grid = (() => {
   }
 
   function harfEkleIndex(harf, index) {
-    // Belirli hücreye ekle (sürükle-bırak için)
     if (index < 0 || index >= tezgah.length) return false;
     const h = tezgah[index];
-    if (!h.eksik) return false; // sadece eksik hücreye bırakılabilir
+    if (!h.eksik) return false;
     h.harf  = harf;
     h.eksik = false;
     h.bos   = false;
@@ -101,13 +114,31 @@ const Grid = (() => {
     return true;
   }
 
+  // ── YENİ: İPUCU — bir eksik harfi doğru yerine koy ──
+  function ipucuYerlestir() {
+    const hedefHarfler = hedefKelime.split('');
+    const baslangic = Math.floor((8 - hedefHarfler.length) / 2);
+
+    for (let i = 0; i < tezgah.length; i++) {
+      if (tezgah[i].eksik) {
+        const kelimeIndex = i - baslangic;
+        if (kelimeIndex >= 0 && kelimeIndex < hedefHarfler.length) {
+          tezgah[i].harf = hedefHarfler[kelimeIndex];
+          tezgah[i].eksik = false;
+          tezgah[i].bos = false;
+          _render();
+          _kontrol();
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   function _kontrol() {
-    // Tezgahtaki harfleri oku, hedef kelimeyle karşılaştır
     const harfler = tezgah.filter(h => h.harf).map(h => h.harf);
-    // Sıralı kelime
     const olusanKelime = harfler.join('');
 
-    // Hedef kelimenin harflerinin tam konumlarını bul
     const hedefHarfler = hedefKelime.split('');
     const baslangic = tezgah.findIndex(h => !h.bos);
     const tezgahDilim = tezgah.slice(baslangic, baslangic + hedefHarfler.length);
@@ -140,25 +171,6 @@ const Grid = (() => {
     return harfler;
   }
 
-  function ipucuDoldur() {
-    // Rastgele bir eksik hucreyi dogru harfle doldur
-    const hedefHarfler = hedefKelime.split('');
-    const baslangic = Math.floor((8 - hedefHarfler.length) / 2);
-    const eksikler = [];
-    tezgah.forEach((h, i) => {
-      if (h.eksik) eksikler.push(i);
-    });
-    if (eksikler.length === 0) return false;
-    const secilen = eksikler[Math.floor(Math.random() * eksikler.length)];
-    const dogruHarf = hedefHarfler[secilen - baslangic];
-    tezgah[secilen].harf = dogruHarf;
-    tezgah[secilen].eksik = false;
-    tezgah[secilen].bos = false;
-    _render();
-    _kontrol();
-    return true;
-  }
-
-  return { init, harfEkle, harfEkleIndex, temizle, getEksikVar, getEksikHarfler, ipucuDoldur };
+  return { init, harfEkle, harfEkleIndex, temizle, getEksikVar, getEksikHarfler, ipucuYerlestir };
 
 })();
