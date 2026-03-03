@@ -72,6 +72,12 @@ const Ses = (() => {
     });
   }
 
-  return { dogru, yanlis, kelimeTamam, seviyeGecis, sureDoldu, oyunBitti };
+  function ipucu() {
+    // Hint sound - soft chime
+    _nota(880, 0.1, 'sine', 0.1);
+    setTimeout(function() { _nota(1100, 0.15, 'sine', 0.08); }, 80);
+  }
+
+  return { dogru, yanlis, kelimeTamam, seviyeGecis, sureDoldu, oyunBitti, ipucu };
 
 })();

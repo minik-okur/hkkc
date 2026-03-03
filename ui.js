@@ -6,7 +6,6 @@
 
 const UI = (() => {
 
-  const MAX_CAN = 3;
   let timerInterval = null;
 
   // ── ZONE A ──
@@ -29,11 +28,14 @@ const UI = (() => {
   function setCanlar(n) {
     const el = document.getElementById('canlar');
     el.innerHTML = '';
-    for (let i = 0; i < MAX_CAN; i++) {
-      const s = document.createElement('span');
-      s.textContent = i < n ? '❤️' : '🖤';
-      el.appendChild(s);
-    }
+    const kalp = document.createElement('span');
+    kalp.className = 'can-kalp';
+    kalp.textContent = n > 0 ? '\u2764\uFE0F' : '\uD83D\uDDA4';
+    el.appendChild(kalp);
+    const sayi = document.createElement('span');
+    sayi.className = 'can-sayi';
+    sayi.textContent = n;
+    el.appendChild(sayi);
   }
 
   // ── ZONE B ──

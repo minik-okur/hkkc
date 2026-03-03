@@ -140,6 +140,25 @@ const Grid = (() => {
     return harfler;
   }
 
-  return { init, harfEkle, harfEkleIndex, temizle, getEksikVar, getEksikHarfler };
+  function ipucuDoldur() {
+    // Rastgele bir eksik hucreyi dogru harfle doldur
+    const hedefHarfler = hedefKelime.split('');
+    const baslangic = Math.floor((8 - hedefHarfler.length) / 2);
+    const eksikler = [];
+    tezgah.forEach((h, i) => {
+      if (h.eksik) eksikler.push(i);
+    });
+    if (eksikler.length === 0) return false;
+    const secilen = eksikler[Math.floor(Math.random() * eksikler.length)];
+    const dogruHarf = hedefHarfler[secilen - baslangic];
+    tezgah[secilen].harf = dogruHarf;
+    tezgah[secilen].eksik = false;
+    tezgah[secilen].bos = false;
+    _render();
+    _kontrol();
+    return true;
+  }
+
+  return { init, harfEkle, harfEkleIndex, temizle, getEksikVar, getEksikHarfler, ipucuDoldur };
 
 })();
