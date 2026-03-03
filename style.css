@@ -70,3 +70,40 @@ body { width:100%; max-width:480px; height:100dvh; overflow:hidden; background:l
 #ss-devam { background:#ffeb3b; border:2px solid #f57f17; color:#33691e; padding:10px 28px; border-radius:6px; font-family:'Courier New',monospace; font-size:14px; cursor:pointer; letter-spacing:2px; font-weight:bold; transition:background 0.2s,color 0.2s; animation:fadeInUp 1.2s ease; }
 #ss-devam:active { background:#f57f17; color:#fff; }
 @keyframes fadeInUp { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
+/* ══════════════════════════════
+   İPUCU BUTONU
+══════════════════════════════ */
+#ipucu-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid #f57f17;
+  background: linear-gradient(135deg, #fff9c4, #ffeb3b);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+#ipucu-btn:active {
+  transform: scale(0.85);
+  box-shadow: none;
+}
+
+/* ══════════════════════════════
+   CAN GÖSTERGE STİLİ
+══════════════════════════════ */
+.can-sayi {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffffff;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+  margin-left: 2px;
+}
+
+.can-kalp {
+  font-size: 16px;
+}
