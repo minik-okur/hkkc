@@ -9,18 +9,21 @@
 <body>
 
   <!-- ZONE A: SKOR -->
-  <div id="zone-a">
+<div id="zone-a">
     <div class="skor-item"><span class="lbl">PUAN</span><span id="puan">0</span></div>
     <div class="skor-item"><span class="lbl">KELİME</span><span id="kelime-sayisi">0</span></div>
+    
     <div class="skor-item">
       <span class="lbl">CAN</span>
       <div id="canlar"></div>
     </div>
-    <div class="skor-item"><span class="lbl">SEVİYE</span><span id="seviye">1</span></div>
+
     <div class="skor-item">
-      <button id="ipucu-btn" onclick="Game.ipucuKullan()">?</button>
+      <button id="ipucu-btn" onclick="Game.ipucuKullan()" title="İpucu (1 can)">💡</button>
       <span class="lbl">İPUCU</span>
     </div>
+
+    <div class="skor-item"><span class="lbl">SEVİYE</span><span id="seviye">1</span></div>
   </div>
 
   <!-- ZONE B: BORULAR -->
