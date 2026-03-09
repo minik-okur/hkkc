@@ -73,12 +73,96 @@ body {
   max-width: 480px;
   height: 100dvh;
   overflow: hidden;
-  background: var(--bg);
+  background: var(--tema-bg, var(--bg));
   color: var(--text);
   font-family: var(--font-b);
   display: flex;
   flex-direction: column;
   gap: 0;
+  position: relative;
+  transition: background 1.4s ease;
+}
+
+/* ── BLOB CANVAS — arka plan animasyonu ── */
+body::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 55% 45% at 20% 20%, var(--blob1, #bae6fd88) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 55% at 80% 75%, var(--blob2, #a5f3fc66) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 50% at 55% 45%, var(--blob3, #e0f2fe44) 0%, transparent 65%);
+  animation: blobSol 14s ease-in-out infinite alternate,
+             blobSag 18s ease-in-out infinite alternate-reverse;
+  transition: background 1.4s ease;
+}
+
+@keyframes blobSol {
+  0%   { transform: translate(0px, 0px)    scale(1); }
+  33%  { transform: translate(18px, -24px) scale(1.06); }
+  66%  { transform: translate(-12px, 16px) scale(0.96); }
+  100% { transform: translate(8px, -8px)   scale(1.03); }
+}
+
+@keyframes blobSag {
+  0%   { transform: translate(0px, 0px)    scale(1); }
+  40%  { transform: translate(-20px, 14px) scale(1.04); }
+  80%  { transform: translate(14px, -18px) scale(0.97); }
+  100% { transform: translate(-6px, 10px)  scale(1.02); }
+}
+
+/* Tüm zone'lar blob'un üstünde */
+body > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ══════════════════════════════
+   TEMA DEĞİŞKENLERİ — Seviyeye göre
+══════════════════════════════ */
+
+/* Seviye 1-4: Sabah — açık mavi, nane */
+body,
+body[data-tema="sabah"] {
+  --tema-bg: #f0f9ff;
+  --blob1: #bae6fd99;
+  --blob2: #a7f3d088;
+  --blob3: #e0f2fe55;
+}
+
+/* Seviye 5-8: Öğlen — sıcak sarı, turuncu */
+body[data-tema="oglen"] {
+  --tema-bg: #fffbeb;
+  --blob1: #fde68a99;
+  --blob2: #fed7aa88;
+  --blob3: #fef3c755;
+}
+
+/* Seviye 9-12: Akşam — pembe, lavanta */
+body[data-tema="aksam"] {
+  --tema-bg: #fdf4ff;
+  --blob1: #f5d0fe99;
+  --blob2: #e9d5ff88;
+  --blob3: #fce7f355;
+}
+
+/* Seviye 13-16: Gece — lacivert, indigo */
+body[data-tema="gece"] {
+  --tema-bg: #f1f5f9;
+  --blob1: #c7d2fe99;
+  --blob2: #a5b4fc88;
+  --blob3: #ddd6fe55;
+}
+
+/* Seviye 17-20: Gece yarısı — koyu, derin */
+body[data-tema="geceyarisi"] {
+  --tema-bg: #f8fafc;
+  --blob1: #cbd5e199;
+  --blob2: #94a3b888;
+  --blob3: #e2e8f055;
 }
 
 /* ══════════════════════════════

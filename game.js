@@ -51,6 +51,14 @@ const Game = (() => {
   // ══════════════════════════════
 
   function _seviyeBaslat(sevNo) {
+    // Tema güncelle
+    const temalar = ['sabah','sabah','sabah','sabah',
+                     'oglen','oglen','oglen','oglen',
+                     'aksam','aksam','aksam','aksam',
+                     'gece','gece','gece','gece',
+                     'geceyarisi','geceyarisi','geceyarisi','geceyarisi'];
+    document.body.dataset.tema = temalar[Math.min(sevNo - 1, temalar.length - 1)];
+
     // Seviyedeki tüm oyun kelimelerini al
     durum.seviyeKelimeler = Words.getKelimeler(sevNo);
     durum.tamamlananlar  = durum.seviyeKelimeler.map(() => false);
