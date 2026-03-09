@@ -64,6 +64,8 @@ const Game = (() => {
       sozVeri.kaynak
     );
 
+    UI.setKelimeSayisi(0, durum.seviyeKelimeler.length);
+
     Grid.temizle();
     _yeniKelimeYukle();
     _yeniBorular();
@@ -106,7 +108,10 @@ const Game = (() => {
 
     // Tamamlananları güncelle
     durum.tamamlananlar[durum.kelimeSira] = true;
-    UI.setKelimeSayisi(durum.tamamlananlar.filter(Boolean).length);
+    UI.setKelimeSayisi(
+      durum.tamamlananlar.filter(Boolean).length,
+      durum.seviyeKelimeler.length
+    );
 
     durum.kelimeSira++;
 
@@ -187,41 +192,22 @@ const Game = (() => {
     const eksikHarfler = Grid.getEksikHarfler();
     if (eksikHarfler.length === 0) return;
 
-    const boruSayisi  = Words.getBoruHarfSayisi(durum.seviye);
+    // Her boruda tek harf — doğru harf + 2 yanlış
+    const BORU_SAYISI = 3;
     const dogru       = eksikHarfler[Math.floor(Math.random() * eksikHarfler.length)];
-    durum.dogruIndex  = Math.floor(Math.random() * boruSayisi);
-
-    const dagilim = _dagit(boruSayisi + 2, boruSayisi); // harf havuzu boru başına
+    durum.dogruIndex  = Math.floor(Math.random() * BORU_SAYISI);
 
     const borular = [];
-    for (let i = 0; i < boruSayisi; i++) {
-      const adet   = dagilim[i];
-      const harfler = [];
+    for (let i = 0; i < BORU_SAYISI; i++) {
+      const harf = i === durum.dogruIndex
+        ? dogru
+        : _rastgeleHarf([...eksikHarfler, dogru]);
 
-      if (i === durum.dogruIndex) {
-        harfler.push(dogru);
-        for (let j = 1; j < adet; j++) {
-          harfler.push(_rastgeleHarf([...eksikHarfler]));
-        }
-      } else {
-        for (let j = 0; j < adet; j++) {
-          harfler.push(_rastgeleHarf([...eksikHarfler]));
-        }
-      }
-
-      borular.push({ harfler, dogru: i === durum.dogruIndex });
+      borular.push({ harfler: [harf], dogru: i === durum.dogruIndex });
     }
 
     durum.aktifBorular = borular;
     UI.setBorular(borular);
-  }
-
-  function _dagit(toplam, boruSayisi) {
-    const taban   = Math.floor(toplam / boruSayisi);
-    const kalan   = toplam % boruSayisi;
-    const dagitim = Array(boruSayisi).fill(taban);
-    for (let i = 0; i < kalan; i++) dagitim[i]++;
-    return dagitim.sort(() => Math.random() - 0.5);
   }
 
   function _rastgeleHarf(haric) {

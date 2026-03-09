@@ -23,8 +23,11 @@ const UI = (() => {
     el.classList.add('puan-pop');
   }
 
-  function setKelimeSayisi(n) {
-    document.getElementById('kelime-sayisi').textContent = n;
+  function setKelimeSayisi(tamamlanan, toplam) {
+    const el = document.getElementById('kelime-sayisi');
+    el.textContent = toplam !== undefined
+      ? tamamlanan + '/' + toplam
+      : tamamlanan;
   }
 
   function setSeviye(n) {
