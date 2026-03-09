@@ -51,19 +51,25 @@ const UI = (() => {
   // ZONE B — BORULAR
   // ══════════════════════════════
 
+  let _boruTimeout = null;
+
   function setBorular(borular) {
     const el = document.getElementById('borular');
 
-    // Önce mevcut boruları çıkış animasyonuyla kaldır
+    // Bekleyen timeout varsa iptal et
+    if (_boruTimeout) {
+      clearTimeout(_boruTimeout);
+      _boruTimeout = null;
+    }
+
     const eskiler = el.querySelectorAll('.boru-wrap');
     if (eskiler.length > 0) {
-      eskiler.forEach(w => {
-        w.classList.add('cikis');
-      });
-      setTimeout(() => {
+      eskiler.forEach(w => w.classList.add('cikis'));
+      _boruTimeout = setTimeout(() => {
         el.innerHTML = '';
         _boruOlustur(el, borular);
-      }, 280);
+        _boruTimeout = null;
+      }, 260);
     } else {
       _boruOlustur(el, borular);
     }
