@@ -1,263 +1,336 @@
 /* =============================================
-   WORDS.JS — Kelime Listesi + Söz Kütüphanesi
+   WORDS.JS — Kelime + Söz Kütüphanesi
    Bağlı: index.html
    Kullanır: game.js
+
+   YENİ YAPI:
+   - Her seviyede 1 atasözü/söz
+   - Atasözündeki ana kelimeler = oyun kelimeleri
+   - Bağlaçlar/edatlar otomatik filtrelenir (tezgaha gelmez)
+   - Her kelimede ayrı eksik harf sayısı (eksik)
+   - Seviye yükseldikçe eksik sayısı artar
    ============================================= */
 
 const Words = (() => {
 
-  // Her seviye = 1 söz, 5 kelime (uzunluğa göre kısa→uzun sıralı)
-  // eksik: her 4 seviyede 1 artış (3,4,5,6,7)
-  const SEVIYELER = [
-    // ── SEVİYE 1-4: 3 eksik harf ──
+  // Tezgaha gelmeyecek küçük kelimeler
+  const FILTRE = new Set([
+    'VE','İLE','DE','DA','Kİ','BİR','BU','ŞU','O','EN',
+    'HER','HİÇ','İÇİN','AMA','FAKAT','LAKIN','ÇÜNKÜ',
+    'EĞER','GİBİ','KADAR','GÖRE','DAHA','YA','VEYA',
+    'NE','MI','MU','Mİ','MÜ','İSE','DE','GE'
+  ]);
+
+  // ── YARDIMCI: atasözünden oynanabilir kelimeleri çıkar ──
+  // noktalama temizler, büyük harfe çevirir, filtreyi uygular
+  function _kelimeCikar(soz) {
+    return soz
+      .split(' ')
+      .map(p => p.replace(/[,\.!?;:\-—«»""'']/g, '').toUpperCase().trim())
+      .filter(k => k.length >= 3 && !FILTRE.has(k));
+  }
+
+  /*
+    EKSİK HARF KURALI (kelime bazında):
+    Seviye 1-2  : ilk kelime 1 eksik, geri kalanlar 1-2
+    Seviye 3-4  : 1-2 eksik
+    Seviye 5-8  : 2-3 eksik
+    Seviye 9-12 : 3-4 eksik
+    Seviye 13+  : 4-5 eksik
+    Kısa kelimeler (≤4 harf) max 1-2 eksik alır
+  */
+  function _eksikHesapla(kelime, sevNo, sira) {
+    const uzunluk = kelime.length;
+    let taban;
+
+    if      (sevNo <= 2)  taban = 1;
+    else if (sevNo <= 4)  taban = sira === 0 ? 1 : 2;
+    else if (sevNo <= 8)  taban = sira <= 1  ? 2 : 3;
+    else if (sevNo <= 12) taban = sira <= 1  ? 3 : 4;
+    else                  taban = sira <= 1  ? 4 : 5;
+
+    // Kısa kelimede çok eksik harf olmaz
+    const maksEksik = Math.max(1, Math.floor(uzunluk * 0.6));
+    return Math.min(taban, maksEksik);
+  }
+
+  // ── SEVİYELER ──
+  // Her seviye: soz, kaynak
+  // kelimeler atasözünden otomatik türetilir
+  // Ek tanim alanı: sözlükteki açıklama (isteğe bağlı)
+  const SOZLER = [
+
+    // ── SEVİYE 1 ──
     {
       soz: 'Korku, karanlık tarafa giden yoldur.',
       kaynak: 'Yoda — Star Wars',
-      kelimeler: [
-        { kelime: 'ÜRKME',    tanim: 'Korkunun içsel hali' },
-        { kelime: 'ÇÖKÜŞ',    tanim: 'Karanlık tarafa gidişin sonu' },
-        { kelime: 'ZULMET',   tanim: 'Derin karanlık' },
-        { kelime: 'ESARET',   tanim: 'Korkunun insanı hapsetmesi' },
-        { kelime: 'GÜZERGAH', tanim: 'Yol, gidilen istikamet' },
-      ]
+      tanimlar: {
+        'KORKU':    'Tehlike karşısında duyulan his',
+        'KARANLIK': 'Işığın olmadığı yer',
+        'TARAFA':   'Yön, taraf',
+        'GİDEN':    'İlerleyen, yola çıkan',
+        'YOLDUR':   'Yol olan, yoldur',
+      }
     },
+
+    // ── SEVİYE 2 ──
     {
       soz: 'Bilgelik, bildiklerini unutmakla başlar.',
       kaynak: 'Sokrates',
-      kelimeler: [
-        { kelime: 'SIFIR',    tanim: 'Her şeyi unutup yeniden başlamak' },
-        { kelime: 'YANILGI',  tanim: 'Önceki yanlış bilgiler' },
-        { kelime: 'ARINMA',   tanim: 'Zihnin temizlenmesi' },
-        { kelime: 'OLGUNLUK', tanim: 'Bilgeliğin meyvesi' },
-        { kelime: 'KAVRAYIŞ', tanim: 'Yeni anlayışa ulaşmak' },
-      ]
+      tanimlar: {
+        'BİLGELİK':   'Derin ve olgun anlayış',
+        'BİLDİKLERİNİ': 'Öğrenilmiş şeyler',
+        'UNUTMAKLA':  'Bellekten silmek suretiyle',
+        'BAŞLAR':     'Başlangıç noktası',
+      }
     },
+
+    // ── SEVİYE 3 ──
     {
       soz: 'Sabır, acının sessiz biçimidir.',
       kaynak: 'Ambrose Bierce',
-      kelimeler: [
-        { kelime: 'SIZI',     tanim: 'İçten gelen hafif acı' },
-        { kelime: 'SÜKUT',    tanim: 'Sessizlik, susan kişi' },
-        { kelime: 'DAYANÇ',   tanim: 'Dayanma gücü' },
-        { kelime: 'BEKLEME',  tanim: 'Sabrın eylemi' },
-        { kelime: 'DİRENİŞ',  tanim: 'Acıya karşı durma' },
-      ]
+      tanimlar: {
+        'SABIR':   'Dayanma gücü',
+        'ACININ':  'Acıya ait olan',
+        'SESSİZ':  'Ses çıkarmayan',
+        'BİÇİMİDİR': 'Şeklidir, halidir',
+      }
     },
+
+    // ── SEVİYE 4 ──
     {
       soz: 'Özgürlük, sorumlulukla ölçülür.',
       kaynak: 'George Bernard Shaw',
-      kelimeler: [
-        { kelime: 'ÖLÇÜ',     tanim: 'Değer biçme' },
-        { kelime: 'SINIR',    tanim: 'Özgürlüğün sınırı' },
-        { kelime: 'HESAP',    tanim: 'Sorumluluğun karşılığı' },
-        { kelime: 'YÜKÜM',    tanim: 'Sorumluluk, yük' },
-        { kelime: 'BAĞIMSIZ', tanim: 'Özgür olan' },
-      ]
+      tanimlar: {
+        'ÖZGÜRLÜK':     'Bağımsızlık hali',
+        'SORUMLULUKLA': 'Sorumluluk ile birlikte',
+        'ÖLÇÜLÜR':      'Değeri belirlenir',
+      }
     },
 
-    // ── SEVİYE 5-8: 4 eksik harf ──
+    // ── SEVİYE 5 ──
     {
       soz: 'Zaman, tüm yaraları sarar.',
       kaynak: 'Atasözü',
-      kelimeler: [
-        { kelime: 'YARA',   tanim: 'Ruhsal acı' },
-        { kelime: 'ŞIFA',   tanim: 'İyileşme' },
-        { kelime: 'AKIŞ',   tanim: 'Zamanın geçişi' },
-        { kelime: 'UNUTUŞ', tanim: 'Zamanla silinme' },
-        { kelime: 'GEÇMİŞ', tanim: 'Arkada kalan' },
-      ]
+      tanimlar: {
+        'ZAMAN':   'Geçen süre',
+        'TÜM':     'Hepsi, tamamı',
+        'YARALARI': 'Acıları, izleri',
+        'SARAR':   'İyileştirir, sarar',
+      }
     },
+
+    // ── SEVİYE 6 ──
     {
       soz: 'Güç, kendini yenmekten doğar.',
       kaynak: 'Konfüçyüs',
-      kelimeler: [
-        { kelime: 'AŞIM',  tanim: 'Kendini aşma eylemi' },
-        { kelime: 'YENGI', tanim: 'Zafer' },
-        { kelime: 'NEFİS', tanim: 'İçindeki düşman' },
-        { kelime: 'DOĞUŞ', tanim: 'Bir şeyin ortaya çıkması' },
-        { kelime: 'İRADE', tanim: 'İç güç, kararlılık' },
-      ]
+      tanimlar: {
+        'GÜÇ':       'Kuvvet, iktidar',
+        'KENDİNİ':   'Kendi özünü',
+        'YENMEKTEN': 'Galip gelmekten',
+        'DOĞAR':     'Ortaya çıkar',
+      }
     },
+
+    // ── SEVİYE 7 ──
     {
       soz: 'Söz, kılıçtan keskindir.',
       kaynak: 'Edward Bulwer-Lytton',
-      kelimeler: [
-        { kelime: 'YARA',     tanim: 'Sözün bıraktığı iz' },
-        { kelime: 'ÇELİK',   tanim: 'Kılıç, sertlik' },
-        { kelime: 'LÂFIZ',   tanim: 'Söylenen söz' },
-        { kelime: 'KESKİN',  tanim: 'Sivri, acıtıcı' },
-        { kelime: 'DERİNLİK', tanim: 'Sözün ağırlığı' },
-      ]
-    },
-    {
-      soz: 'Işık olmadan gölge de olmaz.',
-      kaynak: 'Carl Jung',
-      kelimeler: [
-        { kelime: 'DENGE',    tanim: 'İkisi arasındaki ilişki' },
-        { kelime: 'ZITLIK',   tanim: 'Karşıtların birlikteliği' },
-        { kelime: 'VARLIK',   tanim: 'Bir şeyin var olması' },
-        { kelime: 'KARALTI',  tanim: 'Gölge, loşluk' },
-        { kelime: 'AYDINLIK', tanim: 'Işığın hali' },
-      ]
+      tanimlar: {
+        'SÖZ':       'Dile getirilen ifade',
+        'KILIÇTAN':  'Kılıçla karşılaştırıldığında',
+        'KESKİNDİR': 'Sivri ve etkilidir',
+      }
     },
 
-    // ── SEVİYE 9-12: 5 eksik harf ──
+    // ── SEVİYE 8 ──
+    {
+      soz: 'Işık olmadan gölge olmaz.',
+      kaynak: 'Carl Jung',
+      tanimlar: {
+        'IŞIK':   'Aydınlık kaynağı',
+        'OLMADAN': 'Yokluğunda',
+        'GÖLGE':  'Karanlık yansıma',
+        'OLMAZ':  'Var olamaz',
+      }
+    },
+
+    // ── SEVİYE 9 ──
     {
       soz: 'Umut, insanı ayakta tutan son şeydir.',
       kaynak: 'Pandora Efsanesi',
-      kelimeler: [
-        { kelime: 'SON',     tanim: 'Geriye kalan tek şey' },
-        { kelime: 'IŞIK',    tanim: 'Umudun sembolü' },
-        { kelime: 'DİLEK',  tanim: 'İçten gelen istek' },
-        { kelime: 'KALIM',   tanim: 'Hayatta kalma' },
-        { kelime: 'TUTUNMA', tanim: 'Ayakta kalma çabası' },
-      ]
-    },
-    {
-      soz: 'Sessizlik, en güçlü cevaptır.',
-      kaynak: 'Lao Tzu',
-      kelimeler: [
-        { kelime: 'SÜKUT',     tanim: 'Derin sessizlik' },
-        { kelime: 'YANIT',     tanim: 'Cevap verme' },
-        { kelime: 'GÜÇLÜLÜK',  tanim: 'Sessizliğin gücü' },
-        { kelime: 'DİNGİNLİK', tanim: 'İçsel huzur' },
-        { kelime: 'BİLGELİK',  tanim: 'Konuşmama erdemi' },
-      ]
-    },
-    {
-      soz: 'Her düşüş, yeni bir yükselişin habercisidir.',
-      kaynak: 'Rumi',
-      kelimeler: [
-        { kelime: 'DÖNGÜ',    tanim: 'Düşüp kalkmanın tekrarı' },
-        { kelime: 'HABER',    tanim: 'İşaret, müjde' },
-        { kelime: 'DOĞUŞ',    tanim: 'Yeniden başlangıç' },
-        { kelime: 'YIKILMA',  tanim: 'Düşüş anı' },
-        { kelime: 'YÜKSELİŞ', tanim: 'Toparlanma ve ilerleme' },
-      ]
-    },
-    {
-      soz: 'Cesaret, korkunun yokluğu değil, korkuya rağmen yürümektir.',
-      kaynak: 'Mark Twain',
-      kelimeler: [
-        { kelime: 'AŞIM',     tanim: 'Engeli geçme' },
-        { kelime: 'İRADE',    tanim: 'Korkuya rağmen devam etmek' },
-        { kelime: 'YÜRÜYÜŞ',  tanim: 'İlerleme eylemi' },
-        { kelime: 'TİTREME',  tanim: 'Korkunun bedendeki hali' },
-        { kelime: 'YİĞİTLİK', tanim: 'Cesaret, yüreklilik' },
-      ]
+      tanimlar: {
+        'UMUT':    'İyiye olan inanç',
+        'İNSANI':  'İnsana ait',
+        'AYAKTA':  'Dik duran',
+        'TUTAN':   'Destekleyen',
+        'ŞEYDİR':  'Şeydir, olgudur',
+      }
     },
 
-    // ── SEVİYE 13-16: 6 eksik harf ──
+    // ── SEVİYE 10 ──
     {
-      soz: 'Sevgi, her şeyin başlangıcı ve sonudur.',
-      kaynak: 'Konfüçyüs',
-      kelimeler: [
-        { kelime: 'BAĞ',      tanim: 'İnsanları birleştiren' },
-        { kelime: 'SON',       tanim: 'Her şeyin bitişi' },
-        { kelime: 'KÖKEN',     tanim: 'Başlangıç noktası' },
-        { kelime: 'DÖNGÜ',    tanim: 'Başlayıp biten şey' },
-        { kelime: 'MUHABBET', tanim: 'Sevgi, sıcaklık' },
-      ]
+      soz: 'Sessizlik, güçlü cevaptır.',
+      kaynak: 'Lao Tzu',
+      tanimlar: {
+        'SESSİZLİK': 'Konuşmama hali',
+        'GÜÇLÜ':     'Etkili, kuvvetli',
+        'CEVAPTıR':  'Yanıttır',
+      }
     },
+
+    // ── SEVİYE 11 ──
+    {
+      soz: 'Her düşüş, yeni yükselişin habercisidir.',
+      kaynak: 'Rumi',
+      tanimlar: {
+        'DÜŞÜŞ':        'Aşağı inme',
+        'YENİ':         'Taze, baştan',
+        'YÜKSELİŞİN':  'Yükselmeye ait',
+        'HABERCİSİDİR': 'Müjdecisidir',
+      }
+    },
+
+    // ── SEVİYE 12 ──
+    {
+      soz: 'Cesaret, korkuya rağmen yürümektir.',
+      kaynak: 'Mark Twain',
+      tanimlar: {
+        'CESARET':    'Yüreklilik',
+        'KORKUYA':    'Korkuya karşın',
+        'RAĞMEN':     'Karşın, buna karşı',
+        'YÜRÜMEKTİR': 'İlerleme eylemidir',
+      }
+    },
+
+    // ── SEVİYE 13 ──
+    {
+      soz: 'Sevgi, her şeyin başlangıcı sonudur.',
+      kaynak: 'Konfüçyüs',
+      tanimlar: {
+        'SEVGİ':       'Bağlılık duygusu',
+        'BAŞLANGICI':  'İlk noktası',
+        'SONUDUR':     'Bitiş noktasıdır',
+      }
+    },
+
+    // ── SEVİYE 14 ──
     {
       soz: 'Alçakgönüllülük, bilginin kapısıdır.',
       kaynak: 'Sokrates',
-      kelimeler: [
-        { kelime: 'KAPI',     tanim: 'Girişin sembolü' },
-        { kelime: 'İRFAN',    tanim: 'Derin bilgi' },
-        { kelime: 'TEVAZU',   tanim: 'Alçakgönüllülük' },
-        { kelime: 'AÇIKLIK',  tanim: 'Yeni şeylere açık olmak' },
-        { kelime: 'YOLCULUK', tanim: 'Öğrenme süreci' },
-      ]
+      tanimlar: {
+        'ALÇAKGÖNÜLLÜLÜK': 'Tevazu, mütevazılık',
+        'BİLGİNİN':        'Bilgeye ait olan',
+        'KAPISIDıR':       'Girişidir',
+      }
     },
+
+    // ── SEVİYE 15 ──
     {
       soz: 'Kader, karakterdir.',
       kaynak: 'Heraklitos',
-      kelimeler: [
-        { kelime: 'HUY',       tanim: 'Karakter, tabiat' },
-        { kelime: 'EYLEM',     tanim: 'Karakterin dışa vurumu' },
-        { kelime: 'YAZGI',     tanim: 'Kader, alın yazısı' },
-        { kelime: 'VAROLUŞ',   tanim: 'Olduğun şey' },
-        { kelime: 'ÖZDEŞLİK', tanim: 'İkisinin aynı şey olması' },
-      ]
-    },
-    {
-      soz: 'Gerçek, söylenmesi en zor olan şeydir.',
-      kaynak: 'Tolstoy',
-      kelimeler: [
-        { kelime: 'SÖYLEM',    tanim: 'Dile getirme' },
-        { kelime: 'GÜÇLÜK',    tanim: 'Zorlanma hali' },
-        { kelime: 'CESARET',   tanim: 'Gerçeği söyleme yüreği' },
-        { kelime: 'HAKİKAT',   tanim: 'Gerçek, doğru olan' },
-        { kelime: 'YÜZLEŞME',  tanim: 'Gerçekle karşılaşma' },
-      ]
+      tanimlar: {
+        'KADER':     'Alın yazısı',
+        'KARAKTERDİR': 'Kişiliktir, huydur',
+      }
     },
 
-    // ── SEVİYE 17-20: 7 eksik harf ──
+    // ── SEVİYE 16 ──
+    {
+      soz: 'Gerçek, söylenmesi zor olan şeydir.',
+      kaynak: 'Tolstoy',
+      tanimlar: {
+        'GERÇEK':     'Doğru olan',
+        'SÖYLENMESİ': 'Dile getirilmesi',
+        'ZOR':        'Güç, zorlu',
+        'ŞEYDİR':     'Olgudur',
+      }
+    },
+
+    // ── SEVİYE 17 ──
     {
       soz: 'Yalnızlık, kendini bulmanın mekânıdır.',
       kaynak: 'Paul Tillich',
-      kelimeler: [
-        { kelime: 'MEKAN',    tanim: 'Yer, ortam' },
-        { kelime: 'KEŞİF',    tanim: 'Bulma eylemi' },
-        { kelime: 'ISSIZLIK', tanim: 'Yalnızlık hali' },
-        { kelime: 'ÖZSEZGİ',  tanim: 'Kendini anlama' },
-        { kelime: 'İÇEDÖNÜŞ', tanim: 'Kendine bakma' },
-      ]
+      tanimlar: {
+        'YALNIZLIK':  'Tek başınalık hali',
+        'KENDİNİ':    'Kendi özünü',
+        'BULMANIN':   'Keşfetmenin',
+        'MEKÂNIDUR':  'Yeri, ortamıdır',
+      }
     },
+
+    // ── SEVİYE 18 ──
     {
       soz: 'Değişmeyen tek şey değişimin kendisidir.',
       kaynak: 'Heraklitos',
-      kelimeler: [
-        { kelime: 'AKIŞ',     tanim: 'Her şeyin aktığı fikri' },
-        { kelime: 'DÖNGÜ',    tanim: 'Tekrarlayan değişim' },
-        { kelime: 'DÖNÜŞÜM',  tanim: 'Değişim süreci' },
-        { kelime: 'ÇELİŞKİ',  tanim: 'Değişmeyen değişim paradoksu' },
-        { kelime: 'SABİTLİK', tanim: 'Değişmeyen şey' },
-      ]
+      tanimlar: {
+        'DEĞİŞMEYEN':  'Sabit kalan',
+        'ŞEY':         'Olgu, nesne',
+        'DEĞİŞİMİN':   'Değişime ait olan',
+        'KENDİSİDİR':  'Bizzat odur',
+      }
     },
+
+    // ── SEVİYE 19 ──
     {
       soz: 'İnsan, anlamını kendisi yaratır.',
       kaynak: 'Jean-Paul Sartre',
-      kelimeler: [
-        { kelime: 'ANLAM',       tanim: 'Hayatın amacı' },
-        { kelime: 'YARATIM',     tanim: 'Ortaya çıkarma eylemi' },
-        { kelime: 'VAROLUŞ',     tanim: 'Var olma hali' },
-        { kelime: 'ÖZGÜRLÜK',    tanim: 'Seçim hakkı' },
-        { kelime: 'SORUMLULUK',  tanim: 'Anlam yaratmanın bedeli' },
-      ]
+      tanimlar: {
+        'İNSAN':    'Akıl sahibi varlık',
+        'ANLAMINI': 'Manasını, amacını',
+        'KENDİSİ':  'Bizzat kendisi',
+        'YARATIR':  'Ortaya çıkarır',
+      }
     },
+
+    // ── SEVİYE 20 ──
     {
       soz: 'Akıl, kalbin hizmetçisi olmalıdır.',
       kaynak: 'Blaise Pascal',
-      kelimeler: [
-        { kelime: 'USUL',     tanim: 'Akıl, mantık' },
-        { kelime: 'DENGE',    tanim: 'Akıl ve kalbin uyumu' },
-        { kelime: 'GÖNÜL',    tanim: 'Kalp, his merkezi' },
-        { kelime: 'HİZMET',   tanim: 'Birine bağlı çalışmak' },
-        { kelime: 'ÖNCELİK',  tanim: 'Hangisinin önde gelmesi' },
-      ]
+      tanimlar: {
+        'AKIL':        'Mantık, us',
+        'KALBİN':      'Kalbe ait olan',
+        'HİZMETÇİSİ':  'Yardımcısı, hizmetkârı',
+        'OLMALıDıR':   'Olması gerekir',
+      }
     },
   ];
 
+  // ── API ──
+
   function getSeviye(sevNo) {
-    return SEVIYELER[sevNo - 1] || SEVIYELER[SEVIYELER.length - 1];
+    const idx = Math.min(sevNo - 1, SOZLER.length - 1);
+    return SOZLER[idx];
   }
 
+  // Seviyedeki oynanabilir kelimeleri (filtrelenmiş + eksik hesaplanmış) döner
+  function getKelimeler(sevNo) {
+    const sev     = getSeviye(sevNo);
+    const anaList = _kelimeCikar(sev.soz);
+
+    return anaList.map((kelime, sira) => ({
+      kelime,
+      eksik:  _eksikHesapla(kelime, sevNo, sira),
+      tanim:  sev.tanimlar?.[kelime] || '',
+    }));
+  }
+
+  // Tek kelime getir (game.js uyumluluğu için)
   function getKelime(sevNo, sira) {
-    const sev = getSeviye(sevNo);
-    return sev.kelimeler[sira % sev.kelimeler.length];
+    const liste = getKelimeler(sevNo);
+    return liste[sira % liste.length];
   }
 
-  function getEksikSayisi(sevNo) {
-    // Her 4 seviyede 1 artış
-    // 1-4: 1 eksik, 5-8: 2 eksik, 9-12: 3, 13-16: 4, 17-20: 5
-    return Math.min(Math.ceil(sevNo / 4), 5);
+  // Kelime bazında eksik sayısı (game.js uyumluluğu)
+  function getEksikSayisi(sevNo, sira) {
+    const kelime = getKelime(sevNo, sira);
+    return kelime ? kelime.eksik : 1;
   }
 
   function getBoruHarfSayisi(sevNo) {
-    const eksik = getEksikSayisi(sevNo);
-    return Math.max(3, eksik + 2);
+    // Eksik artınca boru havuzu da büyür
+    const maxEksik = sevNo <= 2 ? 1 : sevNo <= 4 ? 2 : sevNo <= 8 ? 3 : sevNo <= 12 ? 4 : 5;
+    return Math.max(3, maxEksik + 2);
   }
 
   function getSoz(sevNo) {
@@ -266,9 +339,17 @@ const Words = (() => {
   }
 
   function toplamSeviye() {
-    return SEVIYELER.length;
+    return SOZLER.length;
   }
 
-  return { getSeviye, getKelime, getEksikSayisi, getBoruHarfSayisi, getSoz, toplamSeviye };
+  return {
+    getSeviye,
+    getKelimeler,   // YENİ — tüm kelime listesi
+    getKelime,      // game.js uyumluluğu
+    getEksikSayisi, // game.js uyumluluğu
+    getBoruHarfSayisi,
+    getSoz,
+    toplamSeviye,
+  };
 
 })();
