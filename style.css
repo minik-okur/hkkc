@@ -7,8 +7,8 @@
 
 :root {
   /* Ana renkler */
-  --bg:         #f7f7f8;
-  --surface:    #ffffff;
+  --bg:         rgba(247,247,248,0.75);
+  --surface:    rgba(255,255,255,0.82);
   --border:     #e5e5e5;
   --border-mid: #d0d0d0;
 
@@ -87,31 +87,25 @@ body {
 body::before {
   content: '';
   position: absolute;
-  inset: 0;
+  inset: -20%;
   z-index: 0;
   pointer-events: none;
-  overflow: hidden;
   background:
-    radial-gradient(ellipse 55% 45% at 20% 20%, var(--blob1, #bae6fd88) 0%, transparent 70%),
-    radial-gradient(ellipse 50% 55% at 80% 75%, var(--blob2, #a5f3fc66) 0%, transparent 70%),
-    radial-gradient(ellipse 40% 50% at 55% 45%, var(--blob3, #e0f2fe44) 0%, transparent 65%);
-  animation: blobSol 14s ease-in-out infinite alternate,
-             blobSag 18s ease-in-out infinite alternate-reverse;
-  transition: background 1.4s ease;
+    radial-gradient(ellipse 60% 50% at 15% 15%, var(--blob1, #7dd3fc) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 60% at 85% 80%, var(--blob2, #6ee7b7) 0%, transparent 65%),
+    radial-gradient(ellipse 45% 55% at 60% 40%, var(--blob3, #bae6fd) 0%, transparent 60%);
+  animation: blobHareket 16s ease-in-out infinite alternate;
+  transition: background 1.6s ease;
+  filter: blur(40px);
+  opacity: 0.55;
 }
 
-@keyframes blobSol {
-  0%   { transform: translate(0px, 0px)    scale(1); }
-  33%  { transform: translate(18px, -24px) scale(1.06); }
-  66%  { transform: translate(-12px, 16px) scale(0.96); }
-  100% { transform: translate(8px, -8px)   scale(1.03); }
-}
-
-@keyframes blobSag {
-  0%   { transform: translate(0px, 0px)    scale(1); }
-  40%  { transform: translate(-20px, 14px) scale(1.04); }
-  80%  { transform: translate(14px, -18px) scale(0.97); }
-  100% { transform: translate(-6px, 10px)  scale(1.02); }
+@keyframes blobHareket {
+  0%   { transform: translate(0px,   0px)   scale(1);    }
+  25%  { transform: translate(20px, -28px)  scale(1.07); }
+  50%  { transform: translate(-15px, 18px)  scale(0.95); }
+  75%  { transform: translate(10px,  25px)  scale(1.04); }
+  100% { transform: translate(-8px, -12px)  scale(1.02); }
 }
 
 /* Tüm zone'lar blob'un üstünde */
