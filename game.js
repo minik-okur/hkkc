@@ -17,9 +17,9 @@ const Game = (() => {
       puan:          0,
       can:           3,
       seviye:        1,
-      kelimeSira:    0,       // seviyedeki kaçıncı kelime
-      seviyeKelimeler: [],    // Words.getKelimeler() çıktısı — tüm kelimeler
-      tamamlananlar: [],      // hangi kelimeler tamamlandı [bool, bool, ...]
+      kelimeSira:    0,
+      seviyeKelimeler: [],
+      tamamlananlar: [],
       aktifBorular:  [],
       bekleyenHarf:  null,
       oyunBitti:     false,
@@ -51,7 +51,6 @@ const Game = (() => {
   // ══════════════════════════════
 
   function _seviyeBaslat(sevNo) {
-    // Tema güncelle
     const temalar = ['sabah','sabah','sabah','sabah',
                      'oglen','oglen','oglen','oglen',
                      'aksam','aksam','aksam','aksam',
@@ -59,12 +58,10 @@ const Game = (() => {
                      'geceyarisi','geceyarisi','geceyarisi','geceyarisi'];
     document.body.dataset.tema = temalar[Math.min(sevNo - 1, temalar.length - 1)];
 
-    // Seviyedeki tüm oyun kelimelerini al
     durum.seviyeKelimeler = Words.getKelimeler(sevNo);
     durum.tamamlananlar  = durum.seviyeKelimeler.map(() => false);
     durum.kelimeSira     = 0;
 
-    // Atasözü alanını kur
     const sozVeri = Words.getSoz(sevNo);
     UI.sozAlaniOlustur(
       durum.seviyeKelimeler,
@@ -86,7 +83,7 @@ const Game = (() => {
   function _yeniKelimeYukle() {
     if (durum.kelimeSira >= durum.seviyeKelimeler.length) return;
 
-    const veri  = durum.seviyeKelimeler[durum.kelimeSira];
+    const veri = durum.seviyeKelimeler[durum.kelimeSira];
     durum.yanlisSecim = 0;
 
     Grid.init(veri.kelime, veri.eksik, _kelimeTamam);
@@ -99,22 +96,17 @@ const Game = (() => {
   function _kelimeTamam(kelime) {
     if (durum.oyunBitti) return;
 
-    UI.tezgahFlash();
     Ses.kelimeTamam();
 
-    // Puan
     const puan = kelime.length * 10 * durum.seviye;
     durum.puan += puan;
     UI.setPuan(durum.puan);
 
-    // Can bonusu
     durum.can++;
     UI.setCanlar(durum.can);
 
-    // Atasözü alanında kutuyu aç
     UI.sozKutucukAc(kelime);
 
-    // Tamamlananları güncelle
     durum.tamamlananlar[durum.kelimeSira] = true;
     UI.setKelimeSayisi(
       durum.tamamlananlar.filter(Boolean).length,
@@ -123,13 +115,11 @@ const Game = (() => {
 
     durum.kelimeSira++;
 
-    // Tüm kelimeler tamamlandı mı?
     if (durum.tamamlananlar.every(Boolean)) {
       _seviyeBitti();
       return;
     }
 
-    // Sonraki kelimeye geç
     setTimeout(() => {
       Grid.temizle();
       _yeniKelimeYukle();
@@ -146,13 +136,11 @@ const Game = (() => {
     Ses.seviyeGecis();
 
     UI.seviyeSonuGoster(durum.seviye, sozVeri.soz, sozVeri.kaynak, () => {
-      // Sonraki seviyeye geç
       if (durum.seviye < Words.toplamSeviye()) {
         durum.seviye++;
         UI.setSeviye(durum.seviye);
       }
 
-      // Seviye sonu can bonusu
       durum.can += 2;
       UI.setCanlar(durum.can);
 
@@ -177,7 +165,6 @@ const Game = (() => {
 
     durum.kelimeSira++;
 
-    // Tüm kelimeler bitti mi (atlanarak da olsa)
     if (durum.kelimeSira >= durum.seviyeKelimeler.length) {
       _seviyeBitti();
       return;
@@ -200,7 +187,6 @@ const Game = (() => {
     const eksikHarfler = Grid.getEksikHarfler();
     if (eksikHarfler.length === 0) return;
 
-    // Her boruda tek harf — doğru harf + 2 yanlış
     const BORU_SAYISI = 3;
     const dogru       = eksikHarfler[Math.floor(Math.random() * eksikHarfler.length)];
     durum.dogruIndex  = Math.floor(Math.random() * BORU_SAYISI);
@@ -226,7 +212,7 @@ const Game = (() => {
   }
 
   // ══════════════════════════════
-  // HARF SEÇİMİ
+  // HARF SEÇİMİ (BORU)
   // ══════════════════════════════
 
   function harfSec(index) {
@@ -240,17 +226,15 @@ const Game = (() => {
       UI.boruSonuc(index, true);
       Ses.dogru();
 
-      // Can az ise +1
       if (durum.can < 5) {
         durum.can++;
         UI.setCanlar(durum.can);
       }
 
       const dogruHarf = secilen.harfler[0];
-      const yanlislar = secilen.harfler.slice(1);
-      if (yanlislar.length > 0) _yanlisHarflerDus(yanlislar);
-
       durum.bekleyenHarf = dogruHarf;
+
+      // Bekleyen harfi göster — tıklanınca havuza ekle
       UI.bekleyenGoster(dogruHarf, BEKLEME_SURE, _bekleyenSureDoldu);
       _yeniBorular();
 
@@ -285,19 +269,23 @@ const Game = (() => {
     _yeniBorular();
   }
 
-  function bekleyenYerlestir(hedefIndex) {
+  // YENİ: Bekleyen harfe tıklanınca havuza ekle
+  function bekleyenHavuzaEkle() {
     if (!durum.bekleyenHarf) return;
-    const basarili = Grid.harfEkleIndex(durum.bekleyenHarf, hedefIndex);
-    if (basarili) {
-      durum.bekleyenHarf = null;
-      UI.bekleyenGizle();
-      _yeniBorular();
-    }
+    Grid.havuzaEkle(durum.bekleyenHarf);
+    durum.bekleyenHarf = null;
+    UI.bekleyenGizle();
+    _yeniBorular();
   }
 
+  // Eski fonksiyon — artık kullanılmıyor ama uyumluluk için bırakıldı
+  function bekleyenYerlestir() {}
+
   function _tezgahHarfleriniDusur() {
-    const hucreler = document.querySelectorAll('.tezgah-hucre.dolu');
-    const harfler  = Array.from(hucreler).map(h => h.textContent);
+    // Yeni sistemde havuz harfleri yanlış alana düşer
+    const harfler = [];
+    document.querySelectorAll('.havuz-kart').forEach(k => harfler.push(k.textContent));
+    document.querySelectorAll('.slot-gelen').forEach(k => harfler.push(k.textContent));
     if (harfler.length > 0) _yanlisHarflerDus(harfler);
     Grid.temizle();
   }
@@ -307,8 +295,8 @@ const Game = (() => {
   // ══════════════════════════════
 
   function ipucuKullan() {
-    if (durum.oyunBitti)  return;
-    if (durum.can <= 0)   return;
+    if (durum.oyunBitti) return;
+    if (durum.can <= 0)  return;
 
     const basarili = Grid.ipucuYerlestir();
     if (basarili) {
@@ -333,7 +321,7 @@ const Game = (() => {
     const yanlis = document.getElementById('yanlis-grid');
     if (!zoneD || !yanlis) return;
 
-    const satirSayisi   = Math.ceil(yanlis.children.length / 8);
+    const satirSayisi    = Math.ceil(yanlis.children.length / 8);
     const hucreYukseklik = zoneD.clientWidth / 8;
     const doluYukseklik  = satirSayisi * (hucreYukseklik + 3);
 
@@ -366,6 +354,6 @@ const Game = (() => {
     document.getElementById('ipucu-btn').addEventListener('click', ipucuKullan);
   });
 
-  return { init, harfSec, bekleyenYerlestir, ipucuKullan };
+  return { init, harfSec, bekleyenHavuzaEkle, bekleyenYerlestir, ipucuKullan };
 
 })();

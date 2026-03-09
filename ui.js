@@ -9,7 +9,6 @@ const UI = (() => {
   let _timerRaf    = null;
   let _timerSure   = 5000;
   let _timerBaslangic = null;
-  let _touchKaynak = null;
 
   // ══════════════════════════════
   // ZONE A — SKOR
@@ -56,7 +55,6 @@ const UI = (() => {
   function setBorular(borular) {
     const el = document.getElementById('borular');
 
-    // Bekleyen timeout varsa iptal et
     if (_boruTimeout) {
       clearTimeout(_boruTimeout);
       _boruTimeout = null;
@@ -124,29 +122,16 @@ const UI = (() => {
 
     el.textContent = harf;
     el.classList.remove('gizli');
-    el.draggable = true;
-    el.dataset.kaynak = 'bekleyen';
+
+    // Artık sürükleme yok — sadece tıklama ile havuza ekle
+    el.onclick = () => {
+      if (typeof Game !== 'undefined') Game.bekleyenHavuzaEkle();
+    };
 
     dol.style.transition = 'none';
     dol.style.width = '100%';
 
-    el.ondragstart = (e) => {
-      e.dataTransfer.setData('kaynak', 'bekleyen');
-      e.dataTransfer.effectAllowed = 'move';
-    };
-
-    el.ontouchstart = () => { _touchKaynak = 'bekleyen'; };
-    el.ontouchend = (e) => {
-      const touch = e.changedTouches[0];
-      const hedef = document.elementFromPoint(touch.clientX, touch.clientY);
-      if (hedef && hedef.classList.contains('tezgah-hucre')) {
-        const hedefIndex = parseInt(hedef.dataset.index);
-        if (typeof Game !== 'undefined') Game.bekleyenYerlestir(hedefIndex);
-      }
-      _touchKaynak = null;
-    };
-
-    _timerSure     = sureSaniye * 1000;
+    _timerSure      = sureSaniye * 1000;
     _timerBaslangic = performance.now();
 
     function guncelle(now) {
@@ -154,7 +139,6 @@ const UI = (() => {
       const kalan = Math.max(0, 1 - gecen / _timerSure);
       dol.style.width = (kalan * 100) + '%';
 
-      // Sarıdan kırmızıya geçiş
       const r = Math.round(255);
       const g = Math.round(200 * kalan);
       dol.style.background = `rgb(${r},${g},0)`;
@@ -176,94 +160,96 @@ const UI = (() => {
     const el = document.getElementById('bekleyen-harf');
     el.classList.add('gizli');
     el.textContent = '';
-    el.draggable = false;
+    el.onclick = null;
     document.getElementById('timer-fill').style.width = '0%';
   }
 
   // ══════════════════════════════
-  // ZONE C — TEZGAH
+  // ZONE C — TEZGAH (YENİ TAP SİSTEMİ)
   // ══════════════════════════════
 
-  function tezgahRender(hucreler, onDrop) {
+  function tezgahRender(slotlar, havuz, onHavuzTap, onGeriAl, onHepsiniGeriAl) {
     const el = document.getElementById('tezgah');
     el.innerHTML = '';
-    let suruklenen = null;
 
-    hucreler.forEach((h, i) => {
+    if (!slotlar || slotlar.length === 0) return;
+
+    // ── ÜST KISIM: Kelime slotları ──
+    const slotSatir = document.createElement('div');
+    slotSatir.className = 'tezgah-slotlar';
+
+    slotlar.forEach((s, i) => {
       const div = document.createElement('div');
-      div.className = 'tezgah-hucre';
-      div.dataset.index = i;
+      div.className = 'tezgah-slot';
 
-      if (h.harf) {
-        div.classList.add('dolu');
-        div.textContent = h.harf;
-        div.draggable = true;
-
-        div.addEventListener('dragstart', (e) => {
-          suruklenen = i;
-          e.dataTransfer.effectAllowed = 'move';
-        });
-
-        div.addEventListener('touchstart', () => {
-          suruklenen = i;
-        }, { passive: true });
-
-        div.addEventListener('touchmove', (e) => {
-          e.preventDefault();
-          const touch = e.touches[0];
-          const hedef = document.elementFromPoint(touch.clientX, touch.clientY);
-          document.querySelectorAll('.tezgah-hucre').forEach(d => d.classList.remove('surukle-ustu'));
-          if (hedef && hedef.classList.contains('tezgah-hucre')) {
-            hedef.classList.add('surukle-ustu');
-          }
-        }, { passive: false });
-
-      } else if (h.eksik) {
-        div.classList.add('eksik');
+      if (s.durum === 'dolu') {
+        div.classList.add('slot-dolu');
+        div.textContent = s.harf;
+      } else if (s.durum === 'gelen') {
+        div.classList.add('slot-gelen');
+        div.textContent = s.harf;
+      } else if (s.durum === 'eksik') {
+        div.classList.add('slot-eksik');
+        div.textContent = '';
       }
 
-      div.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        div.classList.add('surukle-ustu');
-      });
-      div.addEventListener('dragleave', () => {
-        div.classList.remove('surukle-ustu');
-      });
-      div.addEventListener('drop', (e) => {
-        e.preventDefault();
-        div.classList.remove('surukle-ustu');
-        const bekleyenMi = e.dataTransfer.getData('kaynak') === 'bekleyen';
-        if (bekleyenMi) {
-          if (typeof Game !== 'undefined') Game.bekleyenYerlestir(i);
-        } else if (suruklenen !== null && suruklenen !== i) {
-          onDrop(suruklenen, i);
-          suruklenen = null;
-        }
-      });
-
-      div.addEventListener('touchend', (e) => {
-        const touch = e.changedTouches[0];
-        const hedef = document.elementFromPoint(touch.clientX, touch.clientY);
-        if (hedef && hedef.classList.contains('tezgah-hucre')) {
-          const hedefIndex = parseInt(hedef.dataset.index);
-          if (_touchKaynak === 'bekleyen') {
-            if (typeof Game !== 'undefined') Game.bekleyenYerlestir(hedefIndex);
-            _touchKaynak = null;
-          } else if (suruklenen !== null && suruklenen !== hedefIndex) {
-            onDrop(suruklenen, hedefIndex);
-          }
-        }
-        suruklenen = null;
-        _touchKaynak = null;
-        document.querySelectorAll('.tezgah-hucre').forEach(d => d.classList.remove('surukle-ustu'));
-      }, { passive: true });
-
-      el.appendChild(div);
+      slotSatir.appendChild(div);
     });
+
+    el.appendChild(slotSatir);
+
+    // ── ALT KISIM: Geri al butonları + Havuz harfleri ──
+    const altKisim = document.createElement('div');
+    altKisim.className = 'tezgah-alt';
+
+    // Geri al butonları
+    const butonlar = document.createElement('div');
+    butonlar.className = 'tezgah-butonlar';
+
+    const geriBtn = document.createElement('button');
+    geriBtn.className = 'tezgah-btn geri-btn';
+    geriBtn.innerHTML = '⌫';
+    geriBtn.title = 'Son harfi geri al';
+    geriBtn.addEventListener('click', () => { if (onGeriAl) onGeriAl(); });
+
+    const sifirBtn = document.createElement('button');
+    sifirBtn.className = 'tezgah-btn sifir-btn';
+    sifirBtn.innerHTML = '↺';
+    sifirBtn.title = 'Hepsini geri al';
+    sifirBtn.addEventListener('click', () => { if (onHepsiniGeriAl) onHepsiniGeriAl(); });
+
+    butonlar.appendChild(geriBtn);
+    butonlar.appendChild(sifirBtn);
+
+    // Havuz harfleri
+    const havuzEl = document.createElement('div');
+    havuzEl.className = 'tezgah-havuz';
+
+    havuz.forEach(item => {
+      if (item.yerlestirildi) return; // Yerleştirilmişleri gösterme
+
+      const kart = document.createElement('div');
+      kart.className = 'havuz-kart';
+      if (item.borudan) kart.classList.add('havuz-boru');
+      kart.textContent = item.harf;
+      kart.dataset.id = item.id;
+
+      kart.addEventListener('click', () => {
+        kart.classList.add('havuz-tap');
+        setTimeout(() => kart.classList.remove('havuz-tap'), 200);
+        if (onHavuzTap) onHavuzTap(item.id);
+      });
+
+      havuzEl.appendChild(kart);
+    });
+
+    altKisim.appendChild(butonlar);
+    altKisim.appendChild(havuzEl);
+    el.appendChild(altKisim);
   }
 
   function tezgahFlash() {
-    document.querySelectorAll('.tezgah-hucre.dolu').forEach(h => {
+    document.querySelectorAll('.slot-gelen, .slot-dolu').forEach(h => {
       h.classList.add('dogru-kelime');
       setTimeout(() => h.classList.remove('dogru-kelime'), 600);
     });
@@ -281,7 +267,6 @@ const UI = (() => {
   // ZONE SOZ — ATASÖZÜ İNŞA ALANI
   // ══════════════════════════════
 
-  // Küçük yardımcı kelimeler — tezgaha gelmez, direkt görünür
   const ACIK_KELIMELER = new Set([
     'VE','İLE','DE','DA','Kİ','BİR','BU','ŞU','O',
     'İÇİN','AMA','FAKAT','LAKIN','ÇÜNKÜ','EĞER',
@@ -289,22 +274,16 @@ const UI = (() => {
     ',', '.', '!', '?', ';', ':', '—', '-'
   ]);
 
-  // sozOlustur: seviyeye ait atasözü yapısını hazırlar
-  // kelimeler: words.js'den gelen kelime dizisi (atasözü sırasıyla)
-  // soz: tam atasözü metni (görsel referans için)
-  // kaynak: — Konfüçyüs gibi
   function sozAlaniOlustur(kelimeler, soz, kaynak) {
     const kutucuklar = document.getElementById('soz-kutucuklar');
     const kaynakEl   = document.getElementById('soz-kaynak');
     kutucuklar.innerHTML = '';
 
-    // Atasözünü kelimelere böl, noktalama dahil
     const sozParcalar = _sozParcala(soz);
 
-    sozParcalar.forEach((parca, i) => {
-      const temiz = parca.replace(/[,\.!?;:\-—]/g, '').toUpperCase().trim();
+    sozParcalar.forEach((parca) => {
+      const temiz = parca.replace(/[,\.!?;:\-—«»""'']/g, '').toUpperCase().trim();
 
-      // Boş parça (virgül, nokta gibi tek karakter)
       if (!temiz) {
         const nokEl = document.createElement('span');
         nokEl.className = 'soz-acik-kelime';
@@ -313,7 +292,6 @@ const UI = (() => {
         return;
       }
 
-      // Küçük yardımcı kelime → direkt görünür
       if (ACIK_KELIMELER.has(temiz)) {
         const acikEl = document.createElement('span');
         acikEl.className = 'soz-acik-kelime';
@@ -322,7 +300,6 @@ const UI = (() => {
         return;
       }
 
-      // Ana kelime → kapalı kutucuk
       const wrap = document.createElement('div');
       wrap.className = 'soz-kelime-wrap';
       wrap.dataset.kelime = temiz;
@@ -331,7 +308,6 @@ const UI = (() => {
       kutu.className = 'soz-kutu';
       kutu.id = 'soz-kutu-' + temiz;
 
-      // Her harf için _ slotu
       temiz.split('').forEach(() => {
         const slot = document.createElement('span');
         slot.className = 'soz-harf-slot bos';
@@ -346,7 +322,6 @@ const UI = (() => {
     kaynakEl.textContent = kaynak ? '— ' + kaynak : '';
   }
 
-  // Tamamlanan kelimeyi atasözü alanında aç
   function sozKutucukAc(kelime) {
     const kutu = document.getElementById('soz-kutu-' + kelime.toUpperCase());
     if (!kutu) return;
@@ -363,7 +338,6 @@ const UI = (() => {
 
     kutu.classList.add('acik');
 
-    // Wrap'e tamamlandı sınıfı
     const wrap = kutu.closest('.soz-kelime-wrap');
     if (wrap) wrap.classList.add('tamamlandi');
   }
@@ -375,10 +349,7 @@ const UI = (() => {
     if (kaynakEl) kaynakEl.textContent = '';
   }
 
-  // Atasözü metnini boşluklardan böl, noktalamayı koru
   function _sozParcala(soz) {
-    // "Korku, karanlık tarafa giden yoldur." →
-    // ["Korku,", "karanlık", "tarafa", "giden", "yoldur."]
     return soz.split(' ').filter(p => p.length > 0);
   }
 
@@ -417,8 +388,8 @@ const UI = (() => {
     const kaynakEl  = document.getElementById('ss-kaynak');
     const btn       = document.getElementById('ss-devam');
 
-    sevEl.textContent   = 'SEVİYE ' + seviye + ' TAMAMLANDI';
-    sozEl.textContent   = '« ' + soz + ' »';
+    sevEl.textContent    = 'SEVİYE ' + seviye + ' TAMAMLANDI';
+    sozEl.textContent    = '« ' + soz + ' »';
     kaynakEl.textContent = '— ' + kaynak;
 
     overlay.classList.remove('gizli');
@@ -432,11 +403,9 @@ const UI = (() => {
   }
 
   // ══════════════════════════════
-  // YARDIMCILAR
+  // YARDIMCILAR / UYUMLULUK
   // ══════════════════════════════
 
-  // Hikaye alanı kaldırıldı (zone-soz aldı görevini)
-  // Geriye dönük uyumluluk için boş bırakıldı
   function hikayeEkle()   {}
   function hikayeTemizle(){}
   function setSiradaki()  {}
