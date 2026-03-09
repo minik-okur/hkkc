@@ -15,7 +15,7 @@ const Grid = (() => {
   // ══════════════════════════════
 
   function init(kelime, eksikSayisi, tamamCb) {
-    hedefKelime   = kelime;
+    hedefKelime   = kelime.toUpperCase();
     onKelimeTamam = tamamCb;
     yanlisCount   = 0;
 
@@ -31,7 +31,7 @@ const Grid = (() => {
     }));
 
     const havuzListesi = harfler
-      .map((h, i) => ({ harf: h, kelimePos: i, kullanildi: false }))
+      .map((h, i) => ({ harf: h.toUpperCase(), kelimePos: i, kullanildi: false }))
       .filter((_, i) => !eksikIdx.includes(i));
 
     havuzHarfleri = _karistir(havuzListesi);
@@ -64,25 +64,26 @@ const Grid = (() => {
     const havuzEl = havuzHarfleri[havuzIdx];
     if (!havuzEl || havuzEl.kullanildi) return;
 
-    // Sıradaki boş slot
-    const hedefSlot = tezgah.find(s => s.bos && !s.eksik && s.harf === null);
+    // Sıradaki dolu olmayan slot — bos veya eksik fark etmez
+    const hedefSlot = tezgah.find(s => s.harf === null);
     if (!hedefSlot) return;
 
     // Bu pozisyonda beklenen harf
     const beklenenHarf = hedefKelime[hedefSlot.slotIdx];
 
-    // Doğru mu? — harf değeri aynıysa doğru (kaynak önemli değil)
+    // Doğru mu? — harf değeri aynıysa doğru, kaynak (boru/havuz) önemli değil
     if (havuzEl.harf === beklenenHarf) {
       // ✅ DOĞRU
       havuzEl.kullanildi = true;
       hedefSlot.harf     = havuzEl.harf;
       hedefSlot.bos      = false;
+      hedefSlot.eksik    = false;
 
       _renderTezgah();
       _renderHavuz();
 
-      // Tüm slotlar doldu mu?
-      const bosKaldi   = tezgah.some(s => s.bos && !s.eksik && s.harf === null);
+      // Havuzdan bekleyen boş slot kaldı mı?
+      const bosKaldi   = tezgah.some(s => s.bos && s.harf === null);
       const eksikKaldi = tezgah.some(s => s.eksik);
       if (!bosKaldi && !eksikKaldi) setTimeout(_kontrolEt, 150);
 
