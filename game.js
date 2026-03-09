@@ -1,30 +1,28 @@
 /* =============================================
    GAME.JS — Oyun Motoru
-   Bağlı: index.html
-   Kullanır: Words, UI, Grid, Ses
+   YENİ: Bekleyen harf alanı YOK
+   Borudan doğru seçince harf direkt slota gider
    ============================================= */
 
 const Game = (() => {
 
-  const ALFABE       = 'ABCDEFGHİKLMNOPRSTUYZ'.split('');
-  const BEKLEME_SURE = 5;
-  const MAX_YANLIS   = 3;
+  const ALFABE     = 'ABCDEFGHİKLMNOPRSTUYZ'.split('');
+  const MAX_YANLIS = 3;
 
   let durum = _basDurum();
 
   function _basDurum() {
     return {
-      puan:          0,
-      can:           3,
-      seviye:        1,
-      kelimeSira:    0,
+      puan:            0,
+      can:             3,
+      seviye:          1,
+      kelimeSira:      0,
       seviyeKelimeler: [],
-      tamamlananlar: [],
-      aktifBorular:  [],
-      bekleyenHarf:  null,
-      oyunBitti:     false,
-      dogruIndex:    -1,
-      yanlisSecim:   0,
+      tamamlananlar:   [],
+      aktifBorular:    [],
+      oyunBitti:       false,
+      dogruIndex:      -1,
+      yanlisSecim:     0,
     };
   }
 
@@ -34,15 +32,12 @@ const Game = (() => {
 
   function init() {
     durum = _basDurum();
-
     UI.setCanlar(durum.can);
     UI.setPuan(durum.puan);
     UI.setKelimeSayisi(0);
     UI.setSeviye(durum.seviye);
     UI.yanlisTemizle();
-    UI.bekleyenGizle();
     UI.sozAlaniTemizle();
-
     _seviyeBaslat(durum.seviye);
   }
 
@@ -63,12 +58,7 @@ const Game = (() => {
     durum.kelimeSira     = 0;
 
     const sozVeri = Words.getSoz(sevNo);
-    UI.sozAlaniOlustur(
-      durum.seviyeKelimeler,
-      sozVeri.soz,
-      sozVeri.kaynak
-    );
-
+    UI.sozAlaniOlustur(durum.seviyeKelimeler, sozVeri.soz, sozVeri.kaynak);
     UI.setKelimeSayisi(0, durum.seviyeKelimeler.length);
 
     Grid.temizle();
@@ -77,15 +67,13 @@ const Game = (() => {
   }
 
   // ══════════════════════════════
-  // KELİME YÜKLEme
+  // KELİME YÜKLE
   // ══════════════════════════════
 
   function _yeniKelimeYukle() {
     if (durum.kelimeSira >= durum.seviyeKelimeler.length) return;
-
     const veri = durum.seviyeKelimeler[durum.kelimeSira];
     durum.yanlisSecim = 0;
-
     Grid.init(veri.kelime, veri.eksik, _kelimeTamam);
   }
 
@@ -96,6 +84,7 @@ const Game = (() => {
   function _kelimeTamam(kelime) {
     if (durum.oyunBitti) return;
 
+    UI.tezgahFlash();
     Ses.kelimeTamam();
 
     const puan = kelime.length * 10 * durum.seviye;
@@ -153,7 +142,7 @@ const Game = (() => {
   }
 
   // ══════════════════════════════
-  // KELİME ATLAMA (3 yanlış)
+  // KELİME ATLA (3 yanlış)
   // ══════════════════════════════
 
   function _kelimeAtla() {
@@ -161,8 +150,13 @@ const Game = (() => {
 
     UI.tezgahSalla();
     Ses.sureDoldu();
-    _tezgahHarfleriniDusur();
 
+    // Tezgahtaki gelen harfleri yanlış alana düşür
+    const gelenler = document.querySelectorAll('.sekizgen-slot.slot-gelen .slot-harf');
+    const harfler  = Array.from(gelenler).map(h => h.textContent).filter(Boolean);
+    if (harfler.length) _yanlisHarflerDus(harfler);
+
+    Grid.temizle();
     durum.kelimeSira++;
 
     if (durum.kelimeSira >= durum.seviyeKelimeler.length) {
@@ -171,7 +165,6 @@ const Game = (() => {
     }
 
     setTimeout(() => {
-      Grid.temizle();
       _yeniKelimeYukle();
       _yeniBorular();
     }, 700);
@@ -196,7 +189,6 @@ const Game = (() => {
       const harf = i === durum.dogruIndex
         ? dogru
         : _rastgeleHarf([...eksikHarfler, dogru]);
-
       borular.push({ harfler: [harf], dogru: i === durum.dogruIndex });
     }
 
@@ -212,12 +204,11 @@ const Game = (() => {
   }
 
   // ══════════════════════════════
-  // HARF SEÇİMİ (BORU)
+  // HARF SEÇİMİ — bekleme YOK, direkt slota
   // ══════════════════════════════
 
   function harfSec(index) {
-    if (durum.oyunBitti)    return;
-    if (durum.bekleyenHarf) return;
+    if (durum.oyunBitti) return;
 
     const secilen = durum.aktifBorular[index];
     if (!secilen) return;
@@ -231,11 +222,8 @@ const Game = (() => {
         UI.setCanlar(durum.can);
       }
 
-      const dogruHarf = secilen.harfler[0];
-      durum.bekleyenHarf = dogruHarf;
-
-      // Bekleyen harfi göster — tıklanınca havuza ekle
-      UI.bekleyenGoster(dogruHarf, BEKLEME_SURE, _bekleyenSureDoldu);
+      // Direkt tezgaha ekle — bekleme yok
+      Grid.harfEkle(secilen.harfler[0]);
       _yeniBorular();
 
     } else {
@@ -250,44 +238,6 @@ const Game = (() => {
         _yeniBorular();
       }
     }
-  }
-
-  // ══════════════════════════════
-  // BEKLEYEN HARF
-  // ══════════════════════════════
-
-  function _bekleyenSureDoldu() {
-    Ses.sureDoldu();
-    if (durum.bekleyenHarf) {
-      _yanlisHarflerDus([durum.bekleyenHarf]);
-    }
-    durum.bekleyenHarf = null;
-    UI.bekleyenGizle();
-
-    _tezgahHarfleriniDusur();
-    _yeniKelimeYukle();
-    _yeniBorular();
-  }
-
-  // YENİ: Bekleyen harfe tıklanınca havuza ekle
-  function bekleyenHavuzaEkle() {
-    if (!durum.bekleyenHarf) return;
-    Grid.havuzaEkle(durum.bekleyenHarf);
-    durum.bekleyenHarf = null;
-    UI.bekleyenGizle();
-    _yeniBorular();
-  }
-
-  // Eski fonksiyon — artık kullanılmıyor ama uyumluluk için bırakıldı
-  function bekleyenYerlestir() {}
-
-  function _tezgahHarfleriniDusur() {
-    // Yeni sistemde havuz harfleri yanlış alana düşer
-    const harfler = [];
-    document.querySelectorAll('.havuz-kart').forEach(k => harfler.push(k.textContent));
-    document.querySelectorAll('.slot-gelen').forEach(k => harfler.push(k.textContent));
-    if (harfler.length > 0) _yanlisHarflerDus(harfler);
-    Grid.temizle();
   }
 
   // ══════════════════════════════
@@ -325,19 +275,16 @@ const Game = (() => {
     const hucreYukseklik = zoneD.clientWidth / 8;
     const doluYukseklik  = satirSayisi * (hucreYukseklik + 3);
 
-    if (doluYukseklik >= zoneD.clientHeight) {
-      _oyunBitti();
-    }
+    if (doluYukseklik >= zoneD.clientHeight) _oyunBitti();
   }
 
   function _oyunBitti() {
     durum.oyunBitti = true;
-    UI.bekleyenGizle();
     Ses.oyunBitti();
     setTimeout(() => {
       alert(
         'OYUN BİTTİ!\n' +
-        'Puan: '   + durum.puan    + '\n' +
+        'Puan: '   + durum.puan   + '\n' +
         'Kelime: ' + durum.tamamlananlar.filter(Boolean).length + '\n' +
         'Seviye: ' + durum.seviye
       );
@@ -354,6 +301,10 @@ const Game = (() => {
     document.getElementById('ipucu-btn').addEventListener('click', ipucuKullan);
   });
 
-  return { init, harfSec, bekleyenHavuzaEkle, bekleyenYerlestir, ipucuKullan };
+  // Eski API uyumluluğu
+  function bekleyenYerlestir()  {}
+  function bekleyenHavuzaEkle() {}
+
+  return { init, harfSec, ipucuKullan, bekleyenYerlestir, bekleyenHavuzaEkle };
 
 })();
