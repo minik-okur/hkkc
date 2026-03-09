@@ -16,22 +16,18 @@
       <span id="puan">0</span>
       <span class="lbl">PUAN</span>
     </div>
-
     <div class="skor-item">
       <span id="kelime-sayisi">0</span>
       <span class="lbl">KELİME</span>
     </div>
-
     <div class="skor-item skor-can">
       <div id="canlar"></div>
       <span class="lbl">CAN</span>
     </div>
-
     <div class="skor-item">
-      <button id="ipucu-btn" onclick="Game.ipucuKullan()" title="İpucu (1 can)">💡</button>
+      <button id="ipucu-btn" title="İpucu (1 can)">💡</button>
       <span class="lbl">İPUCU</span>
     </div>
-
     <div class="skor-item">
       <span id="seviye">1</span>
       <span class="lbl">SEVİYE</span>
@@ -45,9 +41,15 @@
     </div>
   </div>
 
-  <!-- ZONE C: HALKA TEZGAH -->
+  <!-- ZONE C: TEZGAH (slot satırı — doğru sıra hedefi) -->
   <div id="zone-c">
-    <div id="halka-alan"></div>
+    <div id="tezgah-label">KELİME</div>
+    <div id="tezgah"></div>
+  </div>
+
+  <!-- ZONE H: HARF HAVUZU (karışık harfler) -->
+  <div id="zone-h">
+    <div id="harf-havuzu"></div>
   </div>
 
   <!-- ZONE SOZ: ATASÖZÜ İNŞA ALANI -->
@@ -73,7 +75,6 @@
     </div>
   </div>
 
-  <!-- MODÜLLER — sıra önemli -->
   <script src="ses.js"></script>
   <script src="words.js"></script>
   <script src="ui.js"></script>
