@@ -1,176 +1,305 @@
 /* =============================================
-   GRID.JS — Tezgah Durum Yöneticisi
+   GRID.JS — Halka Tezgah Yöneticisi
    Bağlı: index.html
-   Kullanır: UI, Words
+   Kullanır: UI
    ============================================= */
 
 const Grid = (() => {
 
-  let tezgah = [];
-  let hedefKelime = '';
-  let onKelimeTamam = null;
-  let onDrop = null;
+  // ── STATE ──
+  let hedefKelime    = '';
+  let halkaDizi      = [];   // [{ harf, bos, merkez, index }]  index = kelime pozisyonu
+  let onKelimeTamam  = null;
+
+  // Seçim zinciri
+  let zincir         = [];   // seçilen halka indexleri (sıralı)
+  let secimAktif     = false;
+
+  // SVG çizgi elementi (ui.js ile koordineli)
+  let svgEl          = null;
+  let containerEl    = null;
+
+  // ══════════════════════════════
+  // INIT
+  // ══════════════════════════════
 
   function init(kelime, eksikSayisi, kelimeTamamCallback) {
-    hedefKelime = kelime;
+    hedefKelime   = kelime;
     onKelimeTamam = kelimeTamamCallback;
+    zincir        = [];
+    secimAktif    = false;
 
-    const harfler = kelime.split('');
-    const baslangic = Math.floor((8 - harfler.length) / 2);
-
-    tezgah = Array(8).fill(null).map(() => ({ harf: null, eksik: false, bos: true }));
-
-    const kelimeIndexler = harfler.map((_, i) => i);
-    const eksikIndexler = _rastgeleSecim(kelimeIndexler, eksikSayisi);
-
-    harfler.forEach((h, i) => {
-      const pos = baslangic + i;
-      if (eksikIndexler.includes(i)) {
-        tezgah[pos] = { harf: null, eksik: true, bos: false };
-      } else {
-        tezgah[pos] = { harf: h, eksik: false, bos: false };
-      }
-    });
-
-    // ── YENİ: Dolu harfleri karıştır ──
-    const doluIndexler = [];
-    const doluHarfler = [];
-    tezgah.forEach((h, i) => {
-      if (h.harf) {
-        doluIndexler.push(i);
-        doluHarfler.push(h.harf);
-      }
-    });
-    // Fisher-Yates shuffle
-    for (let i = doluHarfler.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [doluHarfler[i], doluHarfler[j]] = [doluHarfler[j], doluHarfler[i]];
-    }
-    // Doğru sırada kaldıysa tekrar karıştır
-    const halaDogruMu = doluIndexler.every((idx, k) => {
-      return doluHarfler[k] === harfler[idx - baslangic];
-    });
-    if (halaDogruMu && doluHarfler.length > 1) {
-      [doluHarfler[0], doluHarfler[1]] = [doluHarfler[1], doluHarfler[0]];
-    }
-    doluIndexler.forEach((idx, k) => {
-      tezgah[idx].harf = doluHarfler[k];
-    });
-
+    _halkaOlustur(kelime, eksikSayisi);
     _render();
+  }
+
+  // ── Halka dizisini kur ──
+  // Dış halka: 8 slot (index 0-7)
+  // Merkez:    2 slot (index 8-9)
+  // Kelime harfleri dıştan içe doldurulur
+  function _halkaOlustur(kelime, eksikSayisi) {
+    const harfler = kelime.split('');
+    const toplam  = harfler.length;
+
+    // Hangi pozisyonlar eksik?
+    const tumIdx      = harfler.map((_, i) => i);
+    const eksikPozlar = _rastgeleSecim(tumIdx, eksikSayisi);
+
+    // Dış 8 + merkez 2 = 10 slot
+    halkaDizi = [];
+    for (let i = 0; i < 10; i++) {
+      halkaDizi.push({ harf: null, bos: true, eksik: false, merkez: i >= 8, kelimePos: -1 });
+    }
+
+    // Harfleri yerleştir: ilk 8'i dış halkaya, taşanları merkeze
+    harfler.forEach((h, ki) => {
+      const slotIdx = ki < 8 ? ki : ki - 8 + 8; // 0-7 dış, 8-9 merkez
+      const slot    = halkaDizi[slotIdx];
+      slot.kelimePos = ki;
+
+      if (eksikPozlar.includes(ki)) {
+        slot.eksik = true;
+        slot.bos   = false;
+        slot.harf  = null;
+      } else {
+        slot.harf = h;
+        slot.bos  = false;
+        slot.eksik = false;
+      }
+    });
   }
 
   function _rastgeleSecim(dizi, n) {
-    const karistir = [...dizi].sort(() => Math.random() - 0.5);
-    return karistir.slice(0, n);
+    return [...dizi].sort(() => Math.random() - 0.5).slice(0, n);
   }
+
+  // ══════════════════════════════
+  // RENDER
+  // ══════════════════════════════
 
   function _render() {
-    UI.tezgahRender(tezgah, _suruklemeDrop);
+    UI.halkaRender(halkaDizi, {
+      onPointerDown:  _basla,
+      onPointerEnter: _gecis,
+      onPointerUp:    _birak,
+    });
+    // SVG referansını al
+    svgEl       = document.getElementById('halka-svg');
+    containerEl = document.getElementById('halka-alan');
   }
 
-  function _suruklemeDrop(kaynakIndex, hedefIndex) {
-    const kaynak = tezgah[kaynakIndex];
-    const hedef  = tezgah[hedefIndex];
+  // ══════════════════════════════
+  // DOKUNMA / SEÇİM
+  // ══════════════════════════════
 
-    if (!kaynak.harf) return;
+  function _basla(slotIdx) {
+    const slot = halkaDizi[slotIdx];
+    // Sadece dolu harf olan slottan başlanabilir
+    if (!slot.harf) return;
 
-    const tmpHarf   = hedef.harf;
-    const tmpEksik  = hedef.eksik;
-    const tmpBos    = hedef.bos;
-
-    tezgah[hedefIndex].harf   = kaynak.harf;
-    tezgah[hedefIndex].eksik  = false;
-    tezgah[hedefIndex].bos    = false;
-
-    tezgah[kaynakIndex].harf  = tmpHarf;
-    tezgah[kaynakIndex].eksik = tmpHarf ? false : tmpEksik;
-    tezgah[kaynakIndex].bos   = tmpHarf ? false : tmpBos;
-
-    _render();
-    _kontrol();
+    secimAktif = true;
+    zincir     = [slotIdx];
+    _zinciGuncelle();
   }
 
-  function harfEkle(harf) {
-    const i = tezgah.findIndex(h => h.eksik);
-    if (i === -1) return false;
-    tezgah[i].harf  = harf;
-    tezgah[i].eksik = false;
-    tezgah[i].bos   = false;
-    _render();
-    _kontrol();
-    return true;
+  function _gecis(slotIdx) {
+    if (!secimAktif) return;
+    const slot = halkaDizi[slotIdx];
+
+    // Zaten zincirde varsa geri al (geri kaydırma)
+    const zinciIdx = zincir.indexOf(slotIdx);
+    if (zinciIdx !== -1 && zinciIdx === zincir.length - 2) {
+      zincir.pop();
+      _zinciGuncelle();
+      return;
+    }
+
+    // Zincirin son elemanından komşu mu? (halka için hepsi geçerli)
+    if (zinciIdx !== -1) return; // zaten var, atla
+
+    // Slot dolu mu?
+    if (!slot.harf) return;
+
+    zincir.push(slotIdx);
+    _zinciGuncelle();
   }
 
-  function harfEkleIndex(harf, index) {
-    if (index < 0 || index >= tezgah.length) return false;
-    const h = tezgah[index];
-    if (!h.eksik) return false;
-    h.harf  = harf;
-    h.eksik = false;
-    h.bos   = false;
-    _render();
-    _kontrol();
-    return true;
+  function _birak() {
+    if (!secimAktif) return;
+    secimAktif = false;
+
+    if (zincir.length === 0) return;
+
+    // Seçilen harfleri sırayla oluştur
+    const secilenHarfler = zincir.map(i => halkaDizi[i].harf);
+    const secilenKelime  = secilenHarfler.join('');
+
+    // Hedef kelimede bu harfler doğru sırada mı?
+    // Eksik pozisyonları bul
+    const eksikPozlar = halkaDizi
+      .filter(s => s.eksik && s.kelimePos >= 0)
+      .map(s => s.kelimePos)
+      .sort((a, b) => a - b);
+
+    if (eksikPozlar.length === 0) {
+      // Eksik yok — kelime zaten tam mı kontrol et
+      _zinciTemizle('dogru');
+      _kontrol();
+      return;
+    }
+
+    // Seçilen harflerin hedef kelimede doğru sırada gelmesi lazım
+    const beklenenHarfler = eksikPozlar.map(p => hedefKelime[p]);
+
+    // Zincir uzunluğu ile eksik harf sayısını karşılaştır
+    // Tam doğru mu?
+    const tamDogru = secilenHarfler.length === beklenenHarfler.length &&
+      secilenHarfler.every((h, i) => h === beklenenHarfler[i]);
+
+    // Kısmi doğru mu? (kelimeyi tamamlamak için yeterli)
+    // Zincirdeki harfler hedef sıraya uyuyor mu?
+    const kismiDogru = _kismiKontrol(secilenHarfler, beklenenHarfler);
+
+    if (tamDogru || kismiDogru) {
+      // Doğru seçim — harfleri eksik pozisyonlara yerleştir
+      _zinciTemizle('dogru');
+      _harfleriYerlestir(secilenHarfler, eksikPozlar);
+      setTimeout(() => _kontrol(), 300);
+    } else {
+      // Yanlış seçim
+      _zinciTemizle('yanlis');
+      if (typeof Game !== 'undefined') {
+        Game.zincirYanlis(secilenHarfler);
+      }
+    }
   }
 
-  // ── YENİ: İPUCU — bir eksik harfi doğru yerine koy ──
-  function ipucuYerlestir() {
-    const hedefHarfler = hedefKelime.split('');
-    const baslangic = Math.floor((8 - hedefHarfler.length) / 2);
+  // Seçilen harfler beklenen sıranın başından bir alt kümesi mi?
+  function _kismiKontrol(secilen, beklenen) {
+    if (secilen.length === 0) return false;
+    if (secilen.length > beklenen.length) return false;
+    return secilen.every((h, i) => h === beklenen[i]);
+  }
 
-    for (let i = 0; i < tezgah.length; i++) {
-      if (tezgah[i].eksik) {
-        const kelimeIndex = i - baslangic;
-        if (kelimeIndex >= 0 && kelimeIndex < hedefHarfler.length) {
-          tezgah[i].harf = hedefHarfler[kelimeIndex];
-          tezgah[i].eksik = false;
-          tezgah[i].bos = false;
-          _render();
-          _kontrol();
-          return true;
+  function _harfleriYerlestir(harfler, eksikPozlar) {
+    // Sırayla eksik pozisyonlara yerleştir
+    harfler.forEach((h, i) => {
+      if (i < eksikPozlar.length) {
+        const pos  = eksikPozlar[i];
+        const slot = halkaDizi.find(s => s.kelimePos === pos && s.eksik);
+        if (slot) {
+          slot.harf  = h;
+          slot.eksik = false;
         }
       }
+    });
+    _render();
+  }
+
+  function _zinciGuncelle() {
+    UI.halkaZincirGuncelle(zincir, halkaDizi, false);
+  }
+
+  function _zinciTemizle(sonuc) {
+    UI.halkaZincirGuncelle(zincir, halkaDizi, sonuc);
+    setTimeout(() => {
+      zincir = [];
+      UI.halkaZincirGuncelle([], halkaDizi, false);
+    }, sonuc === 'yanlis' ? 500 : 300);
+  }
+
+  // ══════════════════════════════
+  // KONTROL — kelime tamamlandı mı?
+  // ══════════════════════════════
+
+  function _kontrol() {
+    // Tüm kelime pozisyonları dolu mu?
+    const harfler = hedefKelime.split('');
+    const tamam = harfler.every((h, ki) => {
+      const slot = halkaDizi.find(s => s.kelimePos === ki);
+      return slot && slot.harf === h;
+    });
+
+    if (tamam && onKelimeTamam) {
+      onKelimeTamam(hedefKelime);
+    }
+  }
+
+  // ══════════════════════════════
+  // DIŞ API
+  // ══════════════════════════════
+
+  // Borulardan gelen harfi halkaya ekle
+  function harfEkle(harf) {
+    // Önce eksik slot ara
+    const eksikSlot = halkaDizi.find(s => s.eksik);
+    if (eksikSlot) {
+      eksikSlot.harf  = harf;
+      eksikSlot.eksik = false;
+      _render();
+      _kontrol();
+      return true;
+    }
+    // Boş dış slot ara
+    const bosSlot = halkaDizi.find(s => s.bos && !s.merkez);
+    if (bosSlot) {
+      bosSlot.harf = harf;
+      bosSlot.bos  = false;
+      _render();
+      return true;
+    }
+    // Merkeze koy
+    const merkezSlot = halkaDizi.find(s => s.bos && s.merkez);
+    if (merkezSlot) {
+      merkezSlot.harf = harf;
+      merkezSlot.bos  = false;
+      _render();
+      return true;
     }
     return false;
   }
 
-  function _kontrol() {
-    const harfler = tezgah.filter(h => h.harf).map(h => h.harf);
-    const olusanKelime = harfler.join('');
-
-    const hedefHarfler = hedefKelime.split('');
-    const baslangic = tezgah.findIndex(h => !h.bos);
-    const tezgahDilim = tezgah.slice(baslangic, baslangic + hedefHarfler.length);
-
-    const eslesen = tezgahDilim.every((h, i) => h.harf === hedefHarfler[i]);
-
-    if (eslesen && !tezgahDilim.some(h => h.eksik || !h.harf)) {
-      if (onKelimeTamam) onKelimeTamam(hedefKelime);
-    }
+  // İpucu: bir eksik harfi doğru yerine koy
+  function ipucuYerlestir() {
+    const eksikSlot = halkaDizi.find(s => s.eksik);
+    if (!eksikSlot) return false;
+    eksikSlot.harf  = hedefKelime[eksikSlot.kelimePos];
+    eksikSlot.eksik = false;
+    _render();
+    _kontrol();
+    return true;
   }
 
   function temizle() {
-    tezgah = Array(8).fill(null).map(() => ({ harf: null, eksik: false, bos: true }));
-    _render();
+    halkaDizi     = [];
+    hedefKelime   = '';
+    zincir        = [];
+    secimAktif    = false;
+    UI.halkaRender([], {});
   }
 
   function getEksikVar() {
-    return tezgah.some(h => h.eksik);
+    return halkaDizi.some(s => s.eksik);
   }
 
   function getEksikHarfler() {
-    const harfler = [];
-    const hedefHarfler = hedefKelime.split('');
-    const baslangic = Math.floor((8 - hedefHarfler.length) / 2);
-    tezgah.forEach((h, i) => {
-      if (h.eksik) {
-        harfler.push(hedefHarfler[i - baslangic]);
-      }
-    });
-    return harfler;
+    return halkaDizi
+      .filter(s => s.eksik && s.kelimePos >= 0)
+      .map(s => hedefKelime[s.kelimePos]);
   }
 
-  return { init, harfEkle, harfEkleIndex, temizle, getEksikVar, getEksikHarfler, ipucuYerlestir };
+  // pointer event'leri global olarak dinle (touch için)
+  document.addEventListener('pointerup',     () => { if (secimAktif) _birak(); });
+  document.addEventListener('pointercancel', () => { if (secimAktif) _birak(); });
+
+  return {
+    init,
+    harfEkle,
+    harfEkleIndex: harfEkle, // geriye dönük uyumluluk
+    temizle,
+    getEksikVar,
+    getEksikHarfler,
+    ipucuYerlestir,
+  };
 
 })();
