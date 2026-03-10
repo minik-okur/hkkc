@@ -41,13 +41,13 @@
     </div>
   </div>
 
-  <!-- ZONE C: TEZGAH (slot satırı — doğru sıra hedefi) -->
+  <!-- ZONE C: TEZGAH -->
   <div id="zone-c">
     <div id="tezgah-label">KELİME</div>
     <div id="tezgah"></div>
   </div>
 
-  <!-- ZONE H: HARF HAVUZU (karışık harfler) -->
+  <!-- ZONE H: HARF HAVUZU -->
   <div id="zone-h">
     <div id="harf-havuzu"></div>
   </div>
@@ -65,18 +65,18 @@
   </div>
 
   <!-- SEVİYE SONU OVERLAY -->
-  <div id="seviye-sonu" class="gizli">
-    <div id="ss-icerik">
-      <div id="ss-rozet">🏆</div>
-      <div id="ss-seviye"></div>
-      <div id="ss-soz"></div>
-      <div id="ss-kaynak"></div>
-      <button id="ss-devam">DEVAM <span>→</span></button>
-    </div>
-  </div>
+  <div id="seviye-sonu"></div>
 
   <script src="ses.js"></script>
-  <script src="words.js"></script>
+
+  <!-- Words: önce core, sonra level dosyaları sırayla -->
+  <script src="words/words-core.js"></script>
+  <script src="words/words-level1.js"></script>
+  <script src="words/words-level2.js"></script>
+  <script src="words/words-level3.js"></script>
+  <script src="words/words-level4.js"></script>
+  <script src="words/words-level5.js"></script>
+
   <script src="ui.js"></script>
   <script src="grid.js"></script>
   <script src="game.js"></script>
