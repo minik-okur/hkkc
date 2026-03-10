@@ -196,7 +196,7 @@ const UI = (() => {
     const sozParcalar = soz.split(' ').filter(p => p.length > 0);
 
     sozParcalar.forEach((parca) => {
-      const temiz = parca.replace(/[,\.!?;:\-—]/g, '').toUpperCase().trim();
+      const temiz = parca.replace(/[,\.!?;:\-—]/g, '').toLocaleUpperCase('tr-TR').trim();
 
       if (!temiz) {
         const nokEl = document.createElement('span');
@@ -237,10 +237,10 @@ const UI = (() => {
   }
 
   function sozKutucukAc(kelime) {
-    const kutu = document.getElementById('soz-kutu-' + kelime.toUpperCase());
+    const kutu = document.getElementById('soz-kutu-' + kelime.toLocaleUpperCase('tr-TR'));
     if (!kutu) return;
     const slotlar = kutu.querySelectorAll('.soz-harf-slot');
-    kelime.toUpperCase().split('').forEach((h, i) => {
+    kelime.toLocaleUpperCase('tr-TR').split('').forEach((h, i) => {
       if (slotlar[i]) { slotlar[i].textContent = h; slotlar[i].classList.remove('bos'); }
     });
     kutu.classList.add('acik');

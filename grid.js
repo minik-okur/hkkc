@@ -15,7 +15,7 @@ const Grid = (() => {
   // ══════════════════════════════
 
   function init(kelime, eksikSayisi, tamamCb) {
-    hedefKelime   = kelime.toUpperCase();
+    hedefKelime   = kelime.toLocaleUpperCase('tr-TR');
     onKelimeTamam = tamamCb;
     yanlisCount   = 0;
 
@@ -31,7 +31,7 @@ const Grid = (() => {
     }));
 
     const havuzListesi = harfler
-      .map((h, i) => ({ harf: h.toUpperCase(), kelimePos: i, kullanildi: false }))
+      .map((h, i) => ({ harf: h.toLocaleUpperCase('tr-TR'), kelimePos: i, kullanildi: false }))
       .filter((_, i) => !eksikIdx.includes(i));
 
     havuzHarfleri = _karistir(havuzListesi);
