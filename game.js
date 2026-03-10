@@ -1,21 +1,18 @@
 /* =============================================
-   GAME.JS — Oyun Motoru (yeniden tasarım)
+   GAME.JS — Oyun Motoru
    ============================================= */
 
 const Game = (() => {
 
   const ALFABE     = 'ABCDEFGHİKLMNOPRSTUYZ'.split('');
   const MAX_YANLIS = 3;
-  const SURE_SANIYE = 15; // Her kelime için süre
 
   let durum = _basDurum();
-  let _sureInterval = null;
-  let _sureKalan    = SURE_SANIYE;
 
   function _basDurum() {
     return {
       puan:            0,
-      can:             5,
+      can:             3,
       seviye:          1,
       kelimeSira:      0,
       seviyeKelimeler: [],
@@ -24,9 +21,6 @@ const Game = (() => {
       oyunBitti:       false,
       dogruIndex:      -1,
       yanlisSecim:     0,
-      combo:           0,
-      enIyiCombo:      0,
-      toplamKelime:    0,
     };
   }
 
@@ -35,11 +29,10 @@ const Game = (() => {
   // ══════════════════════════════
 
   function init() {
-    _sureDurdur();
     durum = _basDurum();
     UI.setCanlar(durum.can);
     UI.setPuan(durum.puan);
-    UI.setKelimeSayisi(0, 1);
+    UI.setKelimeSayisi(0);
     UI.setSeviye(durum.seviye);
     UI.yanlisTemizle();
     UI.sozAlaniTemizle();
@@ -82,55 +75,6 @@ const Game = (() => {
     const veri = durum.seviyeKelimeler[durum.kelimeSira];
     durum.yanlisSecim = 0;
     Grid.init(veri.kelime, veri.eksik, _kelimeTamam);
-    _sureBaslat();
-  }
-
-  // ══════════════════════════════
-  // SÜRE YÖNETİMİ
-  // ══════════════════════════════
-
-  function _sureBaslat() {
-    _sureDurdur();
-    _sureKalan = SURE_SANIYE;
-    UI.sureSifirla(SURE_SANIYE);
-
-    // 1 frame bekle, sonra animasyonu başlat
-    setTimeout(() => {
-      UI.setSureBar(1);
-      _sureInterval = setInterval(() => {
-        _sureKalan--;
-        UI.setSureSayi(_sureKalan);
-        UI.setSureBar(_sureKalan / SURE_SANIYE);
-
-        if (_sureKalan <= 0) {
-          _sureDoldur();
-        }
-      }, 1000);
-    }, 50);
-  }
-
-  function _sureDurdur() {
-    if (_sureInterval) {
-      clearInterval(_sureInterval);
-      _sureInterval = null;
-    }
-  }
-
-  function _sureDoldur() {
-    _sureDurdur();
-    if (durum.oyunBitti) return;
-    if (typeof Ses !== 'undefined') Ses.sureDoldu();
-
-    // Can kır
-    durum.can--;
-    UI.setCanlar(durum.can);
-    UI.canTitret();
-
-    // Combo sıfırla
-    durum.combo = 0;
-
-    // Kelime atla — atasözünde gri yaz
-    _kelimeAtla(true /* sureDoldu */);
   }
 
   // ══════════════════════════════
@@ -139,21 +83,13 @@ const Game = (() => {
 
   function _kelimeTamam(kelime) {
     if (durum.oyunBitti) return;
-    _sureDurdur();
 
-    // Combo
-    durum.combo++;
-    if (durum.combo > durum.enIyiCombo) durum.enIyiCombo = durum.combo;
-
-    // Puan: kelime uzunluğu × seviye × combo çarpanı
-    const comboCarpar = Math.min(durum.combo, 5); // max 5x
-    const puan = kelime.length * 10 * durum.seviye * comboCarpar;
+    const puan = kelime.length * 10 * durum.seviye;
     durum.puan += puan;
-    durum.toplamKelime++;
     UI.setPuan(durum.puan);
 
-    // Combo badge (2'den itibaren göster)
-    if (durum.combo >= 2) UI.comboBadgeGoster(durum.combo);
+    durum.can++;
+    UI.setCanlar(durum.can);
 
     UI.sozKutucukAc(kelime);
 
@@ -170,12 +106,6 @@ const Game = (() => {
       return;
     }
 
-    // Tüm kelimeler denendi mi?
-    if (durum.kelimeSira >= durum.seviyeKelimeler.length) {
-      _seviyeBitti();
-      return;
-    }
-
     setTimeout(() => {
       Grid.temizle();
       _yeniKelimeYukle();
@@ -184,7 +114,8 @@ const Game = (() => {
   }
 
   // ══════════════════════════════
-  // TEZGAH YANLIŞ (grid.js'den)
+  // TEZGAH YANLIŞ (grid.js'den çağrılır)
+  // 2. yanlış sırada — harfler zone D'ye
   // ══════════════════════════════
 
   function tezgahYanlis(harfler) {
@@ -199,7 +130,6 @@ const Game = (() => {
   // ══════════════════════════════
 
   function _seviyeBitti() {
-    _sureDurdur();
     const sozVeri = Words.getSoz(durum.seviye);
     if (typeof Ses !== 'undefined') Ses.seviyeGecis();
 
@@ -210,7 +140,6 @@ const Game = (() => {
       }
       durum.can += 2;
       UI.setCanlar(durum.can);
-      durum.combo = 0;
       UI.yanlisTemizle();
       UI.sozAlaniTemizle();
       Grid.temizle();
@@ -220,32 +149,18 @@ const Game = (() => {
 
   // ══════════════════════════════
   // KELİME ATLAMA
-  // Hem süre dolunca hem MAX_YANLIS'ta çağrılır
-  // atlandı = true → atasözünde gri yaz
   // ══════════════════════════════
 
-  function _kelimeAtla(sureDoldu) {
+  function _kelimeAtla() {
     if (durum.oyunBitti) return;
-    _sureDurdur();
-
-    // Atasözünde mevcut kelimeyi gri yaz
-    const mevcutKelime = durum.seviyeKelimeler[durum.kelimeSira];
-    if (mevcutKelime) {
-      UI.sozKutucukAtla(mevcutKelime.kelime);
-    }
-
     UI.tezgahSalla();
-    if (!sureDoldu && typeof Ses !== 'undefined') Ses.sureDoldu();
-
-    // Combo sıfırla
-    durum.combo = 0;
+    if (typeof Ses !== 'undefined') Ses.sureDoldu();
 
     durum.kelimeSira++;
     if (durum.kelimeSira >= durum.seviyeKelimeler.length) {
-      setTimeout(() => _seviyeBitti(), 400);
+      _seviyeBitti();
       return;
     }
-
     setTimeout(() => {
       Grid.temizle();
       _yeniKelimeYukle();
@@ -299,6 +214,10 @@ const Game = (() => {
     if (secilen.dogru) {
       UI.boruSonuc(index, true);
       if (typeof Ses !== 'undefined') Ses.dogru();
+
+      if (durum.can < 5) { durum.can++; UI.setCanlar(durum.can); }
+
+      // Direkt halkaya — bekleyen alan yok
       Grid.harfEkle(secilen.harfler[0]);
       _yeniBorular();
 
@@ -307,17 +226,9 @@ const Game = (() => {
       if (typeof Ses !== 'undefined') Ses.yanlis();
       UI.yanlisEkle(secilen.harfler);
 
-      // Can kır
-      durum.can--;
-      UI.setCanlar(durum.can);
-      UI.canTitret();
-
-      // Combo sıfırla
-      durum.combo = 0;
-
       durum.yanlisSecim++;
       if (durum.yanlisSecim >= MAX_YANLIS) {
-        setTimeout(() => _kelimeAtla(false), 500);
+        setTimeout(() => _kelimeAtla(), 500);
       } else {
         _oyunBitiKontrol();
         _yeniBorular();
@@ -342,37 +253,32 @@ const Game = (() => {
   }
 
   // ══════════════════════════════
-  // OYUN BİTİŞİ — can 0'a düşünce
+  // OYUN BİTİŞİ
   // ══════════════════════════════
 
   function _oyunBitiKontrol() {
-    if (durum.can <= 0) {
-      _oyunBitti();
-      return;
-    }
-    // Eski zone-d dolu kontrolü de tut
     const zoneD  = document.getElementById('zone-d');
     const yanlis = document.getElementById('yanlis-grid');
     if (!zoneD || !yanlis) return;
+
     const satirSayisi    = Math.ceil(yanlis.children.length / 8);
     const hucreYukseklik = zoneD.clientWidth / 8;
     const doluYukseklik  = satirSayisi * (hucreYukseklik + 3);
+
     if (doluYukseklik >= zoneD.clientHeight) _oyunBitti();
   }
 
   function _oyunBitti() {
-    if (durum.oyunBitti) return;
-    _sureDurdur();
     durum.oyunBitti = true;
     if (typeof Ses !== 'undefined') Ses.oyunBitti();
     setTimeout(() => {
-      UI.oyunBittiGoster(
-        durum.puan,
-        durum.toplamKelime,
-        durum.seviye,
-        durum.enIyiCombo,
-        init
+      alert(
+        'OYUN BİTTİ!\n' +
+        'Puan: '   + durum.puan + '\n' +
+        'Kelime: ' + durum.tamamlananlar.filter(Boolean).length + '\n' +
+        'Seviye: ' + durum.seviye
       );
+      init();
     }, 500);
   }
 
