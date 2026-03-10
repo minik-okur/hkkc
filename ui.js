@@ -1,61 +1,149 @@
 /* =============================================
-   UI.JS — Arayüz Modülü
+   UI.JS — Arayüz Modülü (yeniden tasarım)
    ============================================= */
 
 const UI = (() => {
 
   // ══════════════════════════════
-  // ZONE A — SKOR
+  // ZONE A — CAN (sayı + tek kalp)
+  // ══════════════════════════════
+
+  function setCanlar(n) {
+    const ikon  = document.getElementById('can-kalp-ikon');
+    const sayi  = document.getElementById('can-sayi');
+    if (!ikon || !sayi) return;
+
+    sayi.textContent = n;
+
+    // Renk: az / orta / iyi
+    sayi.classList.remove('az','orta','iyi');
+    if      (n <= 3)  sayi.classList.add('az');
+    else if (n <= 8)  sayi.classList.add('orta');
+    else              sayi.classList.add('iyi');
+
+    // Kalp ikonu
+    ikon.textContent = n > 0 ? '❤️' : '🖤';
+  }
+
+  function canTitret() {
+    const ikon = document.getElementById('can-kalp-ikon');
+    if (!ikon) return;
+    ikon.classList.remove('titrek');
+    void ikon.offsetWidth;
+    ikon.classList.add('titrek');
+    setTimeout(() => ikon.classList.remove('titrek'), 450);
+  }
+
+  // ══════════════════════════════
+  // ZONE A — PUAN
   // ══════════════════════════════
 
   function setPuan(n) {
     const el = document.getElementById('puan');
+    if (!el) return;
     el.textContent = n;
     el.classList.remove('puan-pop');
     void el.offsetWidth;
     el.classList.add('puan-pop');
   }
 
-  function setKelimeSayisi(tamamlanan, toplam) {
-    const el = document.getElementById('kelime-sayisi');
-    el.textContent = toplam !== undefined ? tamamlanan + '/' + toplam : tamamlanan;
-  }
+  // ══════════════════════════════
+  // ZONE A — SEVİYE + PROGRESS
+  // ══════════════════════════════
 
   function setSeviye(n) {
-    document.getElementById('seviye').textContent = n;
+    const el = document.getElementById('seviye-etiket');
+    if (el) el.textContent = 'SEVİYE ' + n;
   }
 
-  function setCanlar(n) {
-    const el = document.getElementById('canlar');
-    el.innerHTML = '';
-    const kalp = document.createElement('span');
-    kalp.className = 'can-kalp';
-    kalp.textContent = n > 0 ? '❤️' : '🖤';
-    el.appendChild(kalp);
-    const sayi = document.createElement('span');
-    sayi.className = 'can-sayi';
-    sayi.textContent = n;
-    el.appendChild(sayi);
+  function setProgress(tamamlanan, toplam) {
+    const bar = document.getElementById('progress-bar');
+    if (!bar || !toplam) return;
+    bar.style.width = Math.round((tamamlanan / toplam) * 100) + '%';
+  }
+
+  // Eski setKelimeSayisi — progress bar'ı da günceller
+  function setKelimeSayisi(tamamlanan, toplam) {
+    setProgress(tamamlanan, toplam || 1);
   }
 
   // ══════════════════════════════
-  // ZONE B — BORULAR
+  // COMBO BADGE
+  // ══════════════════════════════
+
+  let _comboTimer = null;
+
+  function comboBadgeGoster(streak) {
+    const el = document.getElementById('combo-badge');
+    if (!el) return;
+    const mesajlar = ['','','🔥 2X COMBO!','🔥 3X COMBO!','⚡ 4X COMBO!','⚡ 5X COMBO!','💥 6X COMBO!','💥 7X COMBO!','🌟 8X COMBO!'];
+    const mesaj = mesajlar[Math.min(streak, mesajlar.length - 1)] || '🌟 ' + streak + 'X COMBO!';
+    el.textContent = mesaj;
+    el.classList.remove('gorunum');
+    void el.offsetWidth;
+    el.classList.add('gorunum');
+    if (_comboTimer) clearTimeout(_comboTimer);
+    _comboTimer = setTimeout(() => {
+      el.classList.remove('gorunum');
+    }, 1400);
+  }
+
+  // ══════════════════════════════
+  // ZONE SÜRE — ZAMANLAYICI
+  // ══════════════════════════════
+
+  function setSureBar(oran) {
+    // oran: 0.0 - 1.0
+    const bar  = document.getElementById('sure-bar');
+    const sayi = document.getElementById('sure-sayi');
+    if (!bar || !sayi) return;
+
+    bar.style.transition = 'none';
+    void bar.offsetWidth;
+    bar.style.transition = 'width 1s linear';
+    bar.style.width = Math.max(0, oran * 100) + '%';
+  }
+
+  function setSureSayi(n) {
+    const sayi = document.getElementById('sure-sayi');
+    const bar  = document.getElementById('sure-bar');
+    if (!sayi || !bar) return;
+    sayi.textContent = n;
+    const kritik = n <= 5;
+    sayi.classList.toggle('kritik', kritik);
+    bar.classList.toggle('kritik', kritik);
+  }
+
+  function sureSifirla(saniye) {
+    const bar  = document.getElementById('sure-bar');
+    const sayi = document.getElementById('sure-sayi');
+    if (!bar || !sayi) return;
+    bar.style.transition = 'none';
+    bar.style.width = '100%';
+    bar.classList.remove('kritik');
+    sayi.classList.remove('kritik');
+    sayi.textContent = saniye;
+    void bar.offsetWidth;
+  }
+
+  // ══════════════════════════════
+  // ZONE B — SEÇİM KARTLARI
   // ══════════════════════════════
 
   let _boruTimeout = null;
 
   function setBorular(borular) {
     const el = document.getElementById('borular');
+    if (!el) return;
     if (_boruTimeout) { clearTimeout(_boruTimeout); _boruTimeout = null; }
 
     const eskiler = el.querySelectorAll('.boru-wrap');
     if (eskiler.length > 0) {
-      eskiler.forEach(w => w.classList.add('cikis'));
+      eskiler.forEach(w => { w.classList.remove('giris'); w.classList.add('cikis'); });
       _boruTimeout = setTimeout(() => {
         el.innerHTML = '';
         _boruOlustur(el, borular);
-        _boruTimeout = null;
-      }, 260);
+      }, 220);
     } else {
       _boruOlustur(el, borular);
     }
@@ -66,55 +154,39 @@ const UI = (() => {
       const wrap = document.createElement('div');
       wrap.className = 'boru-wrap giris';
 
-      const ok = document.createElement('div');
-      ok.className = 'boru-ok';
-      ok.textContent = '▼';
-
-      const kutu = document.createElement('div');
+      const kutu = document.createElement('button');
       kutu.className = 'boru-harf';
       kutu.dataset.index = i;
-
-      boru.harfler.forEach(h => {
-        const span = document.createElement('span');
-        span.className = 'boru-harf-tek';
-        span.textContent = h;
-        kutu.appendChild(span);
-      });
+      kutu.textContent = boru.harfler[0];
 
       kutu.addEventListener('click', () => {
         if (typeof Game !== 'undefined') Game.harfSec(i);
       });
 
-      wrap.appendChild(ok);
       wrap.appendChild(kutu);
       el.appendChild(wrap);
     });
   }
 
   function boruSonuc(index, dogruMu) {
-    const borular = document.querySelectorAll('.boru-harf');
-    const oklar   = document.querySelectorAll('.boru-ok');
-    if (borular[index]) {
-      borular[index].classList.add(dogruMu ? 'dogru' : 'yanlis');
-      if (oklar[index]) oklar[index].classList.add(dogruMu ? 'dogru' : 'yanlis');
+    const kartlar = document.querySelectorAll('.boru-harf');
+    if (kartlar[index]) {
+      kartlar[index].classList.add(dogruMu ? 'dogru' : 'yanlis');
     }
   }
 
   // ══════════════════════════════
-  // ZONE C — TEZGAH (slot satırı)
-  // Sürükle-bırak YOK — sadece görsel slot
+  // ZONE C — TEZGAH
   // ══════════════════════════════
 
-  function tezgahRender(hucreler, _onDrop) {
+  function tezgahRender(hucreler, _unused) {
     const el = document.getElementById('tezgah');
     if (!el) return;
     el.innerHTML = '';
-
     hucreler.forEach((h, i) => {
       const div = document.createElement('div');
       div.className = 'tezgah-hucre';
       div.dataset.index = i;
-
       if (h.harf) {
         div.classList.add('dolu');
         div.textContent = h.harf;
@@ -122,8 +194,6 @@ const UI = (() => {
         div.classList.add('eksik');
         div.textContent = '?';
       }
-      // bos = sade boş kutu (stil zaten varsayılan)
-
       el.appendChild(div);
     });
   }
@@ -144,7 +214,6 @@ const UI = (() => {
     setTimeout(() => el.classList.remove('salla'), 400);
   }
 
-  // Kırmızı flash + salla (yanlış sıra)
   function tezgahSallaKirmizi() {
     document.querySelectorAll('.tezgah-hucre.dolu').forEach(h => {
       h.classList.add('yanlis-kelime');
@@ -161,59 +230,45 @@ const UI = (() => {
     const el = document.getElementById('harf-havuzu');
     if (!el) return;
     el.innerHTML = '';
-
     havuzHarfleri.forEach((item, i) => {
       const btn = document.createElement('button');
       btn.className = 'havuz-harf';
       btn.textContent = item.harf;
-
       if (item.kullanildi) {
         btn.classList.add('kullanildi');
         btn.disabled = true;
       } else {
-        btn.addEventListener('click', () => {
-          if (onTiklandi) onTiklandi(i);
-        });
+        btn.addEventListener('click', () => { if (onTiklandi) onTiklandi(i); });
       }
-
       el.appendChild(btn);
     });
   }
 
   // ══════════════════════════════
-  // ZONE SOZ — ATASÖZÜ İNŞA ALANI
+  // ZONE SOZ — ATASÖZÜ
   // ══════════════════════════════
 
   const ACIK_KELIMELER = new Set([
     'VE','İLE','DE','DA','Kİ','BİR','BU','ŞU','O',
     'İÇİN','AMA','FAKAT','LAKIN','ÇÜNKÜ','EĞER',
     'GİBİ','KADAR','GÖRE','DAHA','EN','HER','HİÇ',
-    ',', '.', '!', '?', ';', ':', '—', '-'
+    ',','.','!','?',';',':','—','-'
   ]);
 
   function sozAlaniOlustur(kelimeler, soz, kaynak) {
     const kutucuklar = document.getElementById('soz-kutucuklar');
     const kaynakEl   = document.getElementById('soz-kaynak');
+    if (!kutucuklar) return;
     kutucuklar.innerHTML = '';
 
-    const sozParcalar = soz.split(' ').filter(p => p.length > 0);
+    soz.split(' ').filter(p => p.length > 0).forEach((parca) => {
+      const temiz = parca.replace(/[,\.!?;:\-—«»""'']/g,'').toUpperCase().trim();
 
-    sozParcalar.forEach((parca) => {
-      const temiz = parca.replace(/[,\.!?;:\-—]/g, '').toUpperCase().trim();
-
-      if (!temiz) {
-        const nokEl = document.createElement('span');
-        nokEl.className = 'soz-acik-kelime';
-        nokEl.textContent = parca.trim();
-        kutucuklar.appendChild(nokEl);
-        return;
-      }
-
-      if (ACIK_KELIMELER.has(temiz)) {
-        const acikEl = document.createElement('span');
-        acikEl.className = 'soz-acik-kelime';
-        acikEl.textContent = parca.trim();
-        kutucuklar.appendChild(acikEl);
+      if (!temiz || ACIK_KELIMELER.has(temiz)) {
+        const span = document.createElement('span');
+        span.className = 'soz-acik-kelime';
+        span.textContent = parca.trim();
+        kutucuklar.appendChild(span);
         return;
       }
 
@@ -236,9 +291,10 @@ const UI = (() => {
       kutucuklar.appendChild(wrap);
     });
 
-    kaynakEl.textContent = kaynak ? '— ' + kaynak : '';
+    if (kaynakEl) kaynakEl.textContent = kaynak ? '— ' + kaynak : '';
   }
 
+  // Kelime tamamlandı — mor animasyon
   function sozKutucukAc(kelime) {
     const kutu = document.getElementById('soz-kutu-' + kelime.toUpperCase());
     if (!kutu) return;
@@ -247,25 +303,39 @@ const UI = (() => {
       if (slotlar[i]) { slotlar[i].textContent = h; slotlar[i].classList.remove('bos'); }
     });
     kutu.classList.add('acik');
-    const wrap = kutu.closest('.soz-kelime-wrap');
-    if (wrap) wrap.classList.add('tamamlandi');
+  }
+
+  // Kelime atlandı — gri animasyonla doğru cevabı yaz
+  function sozKutucukAtla(kelime) {
+    const kutu = document.getElementById('soz-kutu-' + kelime.toUpperCase());
+    if (!kutu) return;
+    const slotlar = kutu.querySelectorAll('.soz-harf-slot');
+    kelime.toUpperCase().split('').forEach((h, i) => {
+      if (slotlar[i]) {
+        slotlar[i].textContent = h;
+        slotlar[i].classList.remove('bos');
+        slotlar[i].classList.add('atlandi-harf');
+      }
+    });
+    kutu.classList.add('atlandi');
   }
 
   function sozAlaniTemizle() {
-    const kutucuklar = document.getElementById('soz-kutucuklar');
-    if (kutucuklar) kutucuklar.innerHTML = '';
-    const kaynakEl = document.getElementById('soz-kaynak');
-    if (kaynakEl) kaynakEl.textContent = '';
+    const el = document.getElementById('soz-kutucuklar');
+    if (el) el.innerHTML = '';
+    const k = document.getElementById('soz-kaynak');
+    if (k) k.textContent = '';
   }
 
   // ══════════════════════════════
   // ZONE D — YANLIŞ HARFLER
   // ══════════════════════════════
 
-  const RENKLER = ['yh-r', 'yh-g', 'yh-y'];
+  const RENKLER = ['yh-r','yh-g','yh-y'];
 
   function yanlisEkle(harfler) {
     const grid = document.getElementById('yanlis-grid');
+    if (!grid) return;
     harfler.forEach(h => {
       const div = document.createElement('div');
       div.className = 'yanlis-harf ' + RENKLER[Math.floor(Math.random() * RENKLER.length)];
@@ -274,18 +344,26 @@ const UI = (() => {
     });
   }
 
-  function yanlisTemizle() { document.getElementById('yanlis-grid').innerHTML = ''; }
-  function yanlisYukseklik() { return document.getElementById('yanlis-grid').scrollHeight; }
+  function yanlisTemizle() {
+    const el = document.getElementById('yanlis-grid');
+    if (el) el.innerHTML = '';
+  }
+
+  function yanlisYukseklik() {
+    const el = document.getElementById('yanlis-grid');
+    return el ? el.scrollHeight : 0;
+  }
 
   // ══════════════════════════════
   // SEVİYE SONU OVERLAY
   // ══════════════════════════════
 
   function seviyeSonuGoster(seviye, soz, kaynak, devamCallback) {
-    const overlay  = document.getElementById('seviye-sonu');
-    document.getElementById('ss-seviye').textContent    = 'SEVİYE ' + seviye + ' TAMAMLANDI';
-    document.getElementById('ss-soz').textContent       = '« ' + soz + ' »';
-    document.getElementById('ss-kaynak').textContent    = '— ' + kaynak;
+    const overlay = document.getElementById('seviye-sonu');
+    if (!overlay) return;
+    document.getElementById('ss-seviye').textContent  = 'SEVİYE ' + seviye + ' TAMAMLANDI';
+    document.getElementById('ss-soz').textContent     = '« ' + soz + ' »';
+    document.getElementById('ss-kaynak').textContent  = '— ' + kaynak;
     overlay.classList.remove('gizli');
     overlay.classList.add('aktif');
     document.getElementById('ss-devam').onclick = () => {
@@ -296,24 +374,46 @@ const UI = (() => {
   }
 
   // ══════════════════════════════
-  // STUB'LAR (geriye dönük uyumluluk)
+  // OYUN BİTTİ OVERLAY
   // ══════════════════════════════
-  function bekleyenGoster() {}
-  function bekleyenGizle()  {}
-  function hikayeEkle()     {}
-  function hikayeTemizle()  {}
-  function setSiradaki()    {}
+
+  function oyunBittiGoster(puan, kelimeSayisi, seviye, enIyiCombo, devamCallback) {
+    const overlay = document.getElementById('oyun-bitti-overlay');
+    if (!overlay) return;
+    document.getElementById('ob-puan').textContent   = puan;
+    document.getElementById('ob-kelime').textContent = kelimeSayisi;
+    document.getElementById('ob-seviye').textContent = seviye;
+    document.getElementById('ob-combo').textContent  = enIyiCombo;
+    overlay.classList.add('aktif');
+    document.getElementById('ob-tekrar').onclick = () => {
+      overlay.classList.remove('aktif');
+      if (devamCallback) devamCallback();
+    };
+  }
+
+  // ══════════════════════════════
+  // STUB'LAR
+  // ══════════════════════════════
+  function bekleyenGoster(){}
+  function bekleyenGizle() {}
+  function hikayeEkle()    {}
+  function hikayeTemizle() {}
+  function setSiradaki()   {}
 
   return {
-    setPuan, setKelimeSayisi, setSeviye, setCanlar,
-    setSiradaki, setBorular, boruSonuc,
-    bekleyenGoster, bekleyenGizle,
+    setCanlar, canTitret,
+    setPuan,
+    setSeviye, setKelimeSayisi, setProgress,
+    comboBadgeGoster,
+    setSureBar, setSureSayi, sureSifirla,
+    setBorular, boruSonuc,
     tezgahRender, tezgahFlash, tezgahSalla, tezgahSallaKirmizi,
     havuzRender,
-    sozAlaniOlustur, sozKutucukAc, sozAlaniTemizle,
+    sozAlaniOlustur, sozKutucukAc, sozKutucukAtla, sozAlaniTemizle,
     yanlisEkle, yanlisTemizle, yanlisYukseklik,
     seviyeSonuGoster,
-    hikayeEkle, hikayeTemizle,
+    oyunBittiGoster,
+    bekleyenGoster, bekleyenGizle, hikayeEkle, hikayeTemizle, setSiradaki,
   };
 
 })();

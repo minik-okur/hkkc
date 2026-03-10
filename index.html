@@ -10,49 +10,62 @@
 </head>
 <body>
 
-  <!-- ZONE A: SKOR ÇUBUĞU -->
+  <!-- ZONE A: ÜST BAR — can / progress / puan / ipucu -->
   <div id="zone-a">
-    <div class="skor-item">
-      <span id="puan">0</span>
-      <span class="lbl">PUAN</span>
+    <!-- Sol: Can -->
+    <div id="can-bolge">
+      <span id="can-kalp-ikon">❤️</span>
+      <span id="can-sayi">3</span>
     </div>
-    <div class="skor-item">
-      <span id="kelime-sayisi">0</span>
-      <span class="lbl">KELİME</span>
+
+    <!-- Orta: Seviye + Progress -->
+    <div id="orta-bolge">
+      <span id="seviye-etiket">SEVİYE 1</span>
+      <div id="progress-wrap">
+        <div id="progress-bar"></div>
+      </div>
     </div>
-    <div class="skor-item skor-can">
-      <div id="canlar"></div>
-      <span class="lbl">CAN</span>
-    </div>
-    <div class="skor-item">
+
+    <!-- Sağ: Puan + İpucu -->
+    <div id="sag-bolge">
+      <div id="puan-kutu">
+        <span id="puan">0</span>
+        <span id="puan-lbl">PUAN</span>
+      </div>
       <button id="ipucu-btn" title="İpucu (1 can)">💡</button>
-      <span class="lbl">İPUCU</span>
-    </div>
-    <div class="skor-item">
-      <span id="seviye">1</span>
-      <span class="lbl">SEVİYE</span>
     </div>
   </div>
 
-  <!-- ZONE B: BORULAR -->
-  <div id="zone-b">
-    <div id="borular-sarici">
-      <div id="borular"></div>
+  <!-- Combo badge (floating) -->
+  <div id="combo-badge"></div>
+
+  <!-- ZONE SÜRE: Zamanlayıcı -->
+  <div id="zone-sure">
+    <div id="sure-wrap">
+      <div id="sure-bar"></div>
     </div>
+    <span id="sure-sayi">15</span>
   </div>
 
-  <!-- ZONE C: TEZGAH (slot satırı — doğru sıra hedefi) -->
+  <!-- ZONE C: TEZGAH — kelime slotları -->
   <div id="zone-c">
     <div id="tezgah-label">KELİME</div>
     <div id="tezgah"></div>
   </div>
 
-  <!-- ZONE H: HARF HAVUZU (karışık harfler) -->
+  <!-- ZONE B: SEÇİM KARTLARI (eskiden borular) -->
+  <div id="zone-b">
+    <div id="boru-soru">HANGİ HARF?</div>
+    <div id="borular"></div>
+  </div>
+
+  <!-- ZONE H: HARF HAVUZU -->
   <div id="zone-h">
+    <div id="havuz-label">HARF HAVUZU</div>
     <div id="harf-havuzu"></div>
   </div>
 
-  <!-- ZONE SOZ: ATASÖZÜ İNŞA ALANI -->
+  <!-- ZONE SOZ: ATASÖZÜ -->
   <div id="zone-soz">
     <div id="soz-label">ATASÖZÜ</div>
     <div id="soz-kutucuklar"></div>
@@ -71,7 +84,34 @@
       <div id="ss-seviye"></div>
       <div id="ss-soz"></div>
       <div id="ss-kaynak"></div>
-      <button id="ss-devam">DEVAM <span>→</span></button>
+      <button id="ss-devam">DEVAM →</button>
+    </div>
+  </div>
+
+  <!-- OYUN BİTTİ OVERLAY -->
+  <div id="oyun-bitti-overlay">
+    <div id="ob-kart">
+      <div id="ob-emoji">💔</div>
+      <div id="ob-baslik">OYUN BİTTİ</div>
+      <div id="ob-stats">
+        <div class="ob-stat">
+          <span class="ob-stat-lbl">PUAN</span>
+          <span class="ob-stat-val" id="ob-puan">0</span>
+        </div>
+        <div class="ob-stat">
+          <span class="ob-stat-lbl">KELİME</span>
+          <span class="ob-stat-val" id="ob-kelime">0</span>
+        </div>
+        <div class="ob-stat">
+          <span class="ob-stat-lbl">SEVİYE</span>
+          <span class="ob-stat-val" id="ob-seviye">1</span>
+        </div>
+        <div class="ob-stat">
+          <span class="ob-stat-lbl">EN İYİ COMBO</span>
+          <span class="ob-stat-val" id="ob-combo">0</span>
+        </div>
+      </div>
+      <button id="ob-tekrar">TEKRAR OYNA 🔄</button>
     </div>
   </div>
 
