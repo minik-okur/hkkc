@@ -151,20 +151,33 @@ const Grid = (() => {
   // ══════════════════════════════
 
   function ipucuYerlestir() {
-    const slot = tezgah.find(s => s.bos && !s.eksik && s.harf === null);
-    if (!slot) return false;
+    const SESLI = new Set(['A','E','I','İ','O','Ö','U','Ü']);
+
+    // Tüm boş slotları bul (hem bos hem eksik)
+    const bosSlotlar = tezgah.filter(s => s.harf === null);
+    if (bosSlotlar.length === 0) return false;
+
+    // Önce sessiz harf içeren slotu bul, yoksa sesli olanı al
+    const slot =
+      bosSlotlar.find(s => !SESLI.has(hedefKelime[s.slotIdx])) ||
+      bosSlotlar[0];
+
     const dogruHarf = hedefKelime[slot.slotIdx];
+
+    // Havuzda bu harfi işaretle (varsa)
     const havuzEl = havuzHarfleri.find(
       h => !h.kullanildi && h.harf === dogruHarf && h.kelimePos === slot.slotIdx
     ) || havuzHarfleri.find(h => !h.kullanildi && h.harf === dogruHarf);
     if (havuzEl) havuzEl.kullanildi = true;
-    slot.harf = dogruHarf;
-    slot.bos  = false;
+
+    slot.harf  = dogruHarf;
+    slot.bos   = false;
+    slot.eksik = false;
     _renderTezgah();
     _renderHavuz();
-    const bosKaldi   = tezgah.some(s => s.bos && s.harf === null);
-    const eksikKaldi = tezgah.some(s => s.eksik);
-    if (!bosKaldi && !eksikKaldi) setTimeout(_kontrolEt, 150);
+
+    const tamDolu = tezgah.every(s => s.harf !== null);
+    if (tamDolu) setTimeout(_kontrolEt, 150);
     return true;
   }
 
