@@ -503,8 +503,16 @@ const UI = (() => {
       document.head.appendChild(stil);
     }
 
-    // Göster
+    // className sıfırla — CSS .gizli/.aktif kuralları devreye girmesin
+    overlay.className = '';
+
+    // Göster: önce display, sonra opacity ile fade-in
+    overlay.style.opacity = '0';
     overlay.style.display = 'flex';
+    overlay.style.flexDirection = 'column';
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'center';
+    overlay.style.pointerEvents = 'auto';
     requestAnimationFrame(() => {
       requestAnimationFrame(() => { overlay.style.opacity = '1'; });
     });
