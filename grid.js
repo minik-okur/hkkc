@@ -141,9 +141,8 @@ const Grid = (() => {
     slot.eksik = false;
     slot.bos   = false;
     _renderTezgah();
-    const bosKaldi   = tezgah.some(s => s.bos && s.harf === null);
-    const eksikKaldi = tezgah.some(s => s.eksik);
-    if (!bosKaldi && !eksikKaldi) setTimeout(_kontrolEt, 150);
+    const tamDolu = tezgah.every(s => s.harf !== null);
+    if (tamDolu) setTimeout(_kontrolEt, 150);
     return true;
   }
 
