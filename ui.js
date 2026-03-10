@@ -101,8 +101,7 @@ const UI = (() => {
   }
 
   // ══════════════════════════════
-  // ZONE C — TEZGAH (slot satırı)
-  // Sürükle-bırak YOK — sadece görsel slot
+  // ZONE C — TEZGAH
   // ══════════════════════════════
 
   function tezgahRender(hucreler, _onDrop) {
@@ -122,7 +121,6 @@ const UI = (() => {
         div.classList.add('eksik');
         div.textContent = '?';
       }
-      // bos = sade boş kutu (stil zaten varsayılan)
 
       el.appendChild(div);
     });
@@ -144,7 +142,6 @@ const UI = (() => {
     setTimeout(() => el.classList.remove('salla'), 400);
   }
 
-  // Kırmızı flash + salla (yanlış sıra)
   function tezgahSallaKirmizi() {
     document.querySelectorAll('.tezgah-hucre.dolu').forEach(h => {
       h.classList.add('yanlis-kelime');
@@ -181,7 +178,7 @@ const UI = (() => {
   }
 
   // ══════════════════════════════
-  // ZONE SOZ — ATASÖZÜ İNŞA ALANI
+  // ZONE SOZ — ATASÖZÜ
   // ══════════════════════════════
 
   const ACIK_KELIMELER = new Set([
@@ -278,25 +275,243 @@ const UI = (() => {
   function yanlisYukseklik() { return document.getElementById('yanlis-grid').scrollHeight; }
 
   // ══════════════════════════════
-  // SEVİYE SONU OVERLAY
+  // SEVİYE SONU — TAM EKRAN KART
   // ══════════════════════════════
 
+  const ROZET_EMOJILERI = ['🏆','⭐','🌟','💫','✨','🎯','🎖️','🥇','🎊','🎉','🔥','💎','👑','🦋','🌈'];
+  const TEMA_RENKLERI = {
+    sabah:      { bg: 'linear-gradient(135deg, #1e3a5f 0%, #0f2027 100%)', accent: '#60c8f5', accent2: '#34d399' },
+    oglen:      { bg: 'linear-gradient(135deg, #3d1a00 0%, #1a0a00 100%)', accent: '#fbbf24', accent2: '#f97316' },
+    aksam:      { bg: 'linear-gradient(135deg, #2d0050 0%, #1a0030 100%)', accent: '#e879f9', accent2: '#a78bfa' },
+    gece:       { bg: 'linear-gradient(135deg, #0a0a2e 0%, #050518 100%)', accent: '#818cf8', accent2: '#38bdf8' },
+    geceyarisi: { bg: 'linear-gradient(135deg, #0f172a 0%, #020617 100%)', accent: '#94a3b8', accent2: '#6366f1' },
+  };
+
   function seviyeSonuGoster(seviye, soz, kaynak, devamCallback) {
-    const overlay  = document.getElementById('seviye-sonu');
-    document.getElementById('ss-seviye').textContent    = 'SEVİYE ' + seviye + ' TAMAMLANDI';
-    document.getElementById('ss-soz').textContent       = '« ' + soz + ' »';
-    document.getElementById('ss-kaynak').textContent    = '— ' + kaynak;
-    overlay.classList.remove('gizli');
-    overlay.classList.add('aktif');
-    document.getElementById('ss-devam').onclick = () => {
-      overlay.classList.remove('aktif');
-      overlay.classList.add('gizli');
-      if (devamCallback) devamCallback();
-    };
+    // Mevcut overlay'i tamamen yeniden oluştur
+    let overlay = document.getElementById('seviye-sonu');
+    overlay.innerHTML = '';
+    overlay.className = '';
+
+    const tema = document.body.dataset.tema || 'sabah';
+    const renkler = TEMA_RENKLERI[tema] || TEMA_RENKLERI.sabah;
+    const rozet = ROZET_EMOJILERI[(seviye - 1) % ROZET_EMOJILERI.length];
+
+    // Arka plan
+    overlay.style.cssText = `
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: ${renkler.bg};
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      overflow: hidden;
+    `;
+
+    // Parlayan ışık efekti — arka plan
+    const isikEl = document.createElement('div');
+    isikEl.style.cssText = `
+      position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 70% 50% at 50% 30%, ${renkler.accent}22 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 30% 70%, ${renkler.accent2}18 0%, transparent 55%);
+    `;
+    overlay.appendChild(isikEl);
+
+    // Yıldız parçacıkları
+    for (let i = 0; i < 18; i++) {
+      const yildiz = document.createElement('div');
+      const boyut = 3 + Math.random() * 5;
+      yildiz.style.cssText = `
+        position: absolute;
+        width: ${boyut}px; height: ${boyut}px;
+        border-radius: 50%;
+        background: ${Math.random() > 0.5 ? renkler.accent : renkler.accent2};
+        left: ${Math.random() * 100}%;
+        top: ${Math.random() * 100}%;
+        opacity: ${0.3 + Math.random() * 0.6};
+        animation: yildizAt ${2 + Math.random() * 3}s ease-in-out infinite alternate;
+        animation-delay: ${Math.random() * 2}s;
+        filter: blur(${Math.random() > 0.6 ? '1px' : '0px'});
+      `;
+      overlay.appendChild(yildiz);
+    }
+
+    // ANA KART
+    const kart = document.createElement('div');
+    kart.style.cssText = `
+      position: relative; z-index: 2;
+      width: min(88vw, 380px);
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 28px;
+      padding: 36px 28px 32px;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 0;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.12);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      overflow: hidden;
+    `;
+
+    // Kart iç parlaklık çizgisi
+    const parlak = document.createElement('div');
+    parlak.style.cssText = `
+      position: absolute; top: 0; left: 20%; right: 20%; height: 1px;
+      background: linear-gradient(90deg, transparent, ${renkler.accent}88, transparent);
+      pointer-events: none;
+    `;
+    kart.appendChild(parlak);
+
+    // Rozet
+    const rozetEl = document.createElement('div');
+    rozetEl.textContent = rozet;
+    rozetEl.style.cssText = `
+      font-size: 64px; line-height: 1; margin-bottom: 16px;
+      filter: drop-shadow(0 0 20px ${renkler.accent}99) drop-shadow(0 8px 16px rgba(0,0,0,0.4));
+      animation: rozetGel 0.7s cubic-bezier(0.34,1.56,0.64,1) both;
+    `;
+    kart.appendChild(rozetEl);
+
+    // Seviye etiketi
+    const sevEl = document.createElement('div');
+    sevEl.textContent = `SEVİYE ${seviye} TAMAMLANDI`;
+    sevEl.style.cssText = `
+      font-family: 'Fredoka One', cursive;
+      font-size: 11px; letter-spacing: 3.5px;
+      color: ${renkler.accent};
+      text-shadow: 0 0 20px ${renkler.accent}88;
+      margin-bottom: 20px;
+      animation: fadeUp 0.5s 0.2s ease both;
+      opacity: 0;
+    `;
+    kart.appendChild(sevEl);
+
+    // Ayırıcı çizgi
+    const cizgi = document.createElement('div');
+    cizgi.style.cssText = `
+      width: 60px; height: 2px;
+      background: linear-gradient(90deg, transparent, ${renkler.accent}88, transparent);
+      margin-bottom: 20px;
+      animation: fadeUp 0.5s 0.3s ease both; opacity: 0;
+    `;
+    kart.appendChild(cizgi);
+
+    // Söz metni
+    const sozEl = document.createElement('div');
+    sozEl.textContent = soz;
+    sozEl.style.cssText = `
+      font-family: 'Nunito', sans-serif;
+      font-size: clamp(15px, 4vw, 19px);
+      font-weight: 700;
+      color: rgba(255,255,255,0.92);
+      line-height: 1.6;
+      text-align: center;
+      margin-bottom: 14px;
+      text-shadow: 0 2px 12px rgba(0,0,0,0.4);
+      animation: fadeUp 0.5s 0.38s ease both; opacity: 0;
+      padding: 0 8px;
+    `;
+    kart.appendChild(sozEl);
+
+    // Kaynak
+    const kaynakEl = document.createElement('div');
+    kaynakEl.textContent = '— ' + kaynak;
+    kaynakEl.style.cssText = `
+      font-family: 'Nunito Sans', sans-serif;
+      font-size: 13px;
+      color: ${renkler.accent2};
+      font-style: italic;
+      margin-bottom: 28px;
+      opacity: 0;
+      animation: fadeUp 0.5s 0.5s ease both;
+      text-shadow: 0 0 16px ${renkler.accent2}66;
+    `;
+    kart.appendChild(kaynakEl);
+
+    // Devam butonu
+    const devamBtn = document.createElement('button');
+    devamBtn.innerHTML = 'DEVAM &nbsp;→';
+    devamBtn.style.cssText = `
+      background: linear-gradient(135deg, ${renkler.accent}, ${renkler.accent2});
+      border: none; border-radius: 999px;
+      color: #fff; font-family: 'Fredoka One', cursive;
+      font-size: 17px; letter-spacing: 1px;
+      padding: 14px 52px; cursor: pointer;
+      box-shadow: 0 6px 0 rgba(0,0,0,0.3), 0 8px 24px ${renkler.accent}55, inset 0 1px 0 rgba(255,255,255,0.3);
+      transition: transform 0.12s, box-shadow 0.12s;
+      animation: fadeUp 0.5s 0.65s ease both; opacity: 0;
+      position: relative; overflow: hidden;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    `;
+
+    // Buton iç parlaklık
+    const btnParlak = document.createElement('span');
+    btnParlak.style.cssText = `
+      position: absolute; top: 0; left: 0; right: 0; height: 50%;
+      background: rgba(255,255,255,0.2);
+      border-radius: 999px 999px 50% 50%;
+      pointer-events: none;
+    `;
+    devamBtn.appendChild(btnParlak);
+
+    devamBtn.addEventListener('mouseenter', () => {
+      devamBtn.style.transform = 'translateY(-2px)';
+      devamBtn.style.boxShadow = `0 8px 0 rgba(0,0,0,0.3), 0 12px 28px ${renkler.accent}77, inset 0 1px 0 rgba(255,255,255,0.3)`;
+    });
+    devamBtn.addEventListener('mouseleave', () => {
+      devamBtn.style.transform = '';
+      devamBtn.style.boxShadow = `0 6px 0 rgba(0,0,0,0.3), 0 8px 24px ${renkler.accent}55, inset 0 1px 0 rgba(255,255,255,0.3)`;
+    });
+    devamBtn.addEventListener('mousedown', () => {
+      devamBtn.style.transform = 'translateY(5px)';
+      devamBtn.style.boxShadow = `0 1px 0 rgba(0,0,0,0.3), 0 2px 8px ${renkler.accent}44`;
+    });
+
+    devamBtn.addEventListener('click', () => {
+      overlay.style.opacity = '0';
+      overlay.style.transform = 'scale(1.04)';
+      setTimeout(() => {
+        overlay.style.display = 'none';
+        if (devamCallback) devamCallback();
+      }, 450);
+    });
+
+    kart.appendChild(devamBtn);
+    overlay.appendChild(kart);
+
+    // CSS animasyon keyframe'lerini sayfaya ekle (bir kez)
+    if (!document.getElementById('ss-keyframes')) {
+      const stil = document.createElement('style');
+      stil.id = 'ss-keyframes';
+      stil.textContent = `
+        @keyframes rozetGel {
+          from { transform: scale(0) rotate(-30deg); opacity: 0; }
+          60%  { transform: scale(1.18) rotate(8deg); }
+          to   { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        @keyframes fadeUp {
+          from { transform: translateY(22px); opacity: 0; }
+          to   { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes yildizAt {
+          from { transform: translateY(0) scale(1); opacity: 0.3; }
+          to   { transform: translateY(-12px) scale(1.4); opacity: 0.9; }
+        }
+      `;
+      document.head.appendChild(stil);
+    }
+
+    // Göster
+    overlay.style.display = 'flex';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => { overlay.style.opacity = '1'; });
+    });
   }
 
   // ══════════════════════════════
-  // STUB'LAR (geriye dönük uyumluluk)
+  // STUB'LAR
   // ══════════════════════════════
   function bekleyenGoster() {}
   function bekleyenGizle()  {}
