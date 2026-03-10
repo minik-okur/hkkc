@@ -6,6 +6,7 @@ const Game = (() => {
 
   const ALFABE     = 'ABCDEFGHİKLMNOPRSTUYZ'.split('');
   const MAX_YANLIS = 3;
+  const KAYIT_KEY  = 'sozcuk_durum_v1';
 
   let durum = _basDurum();
 
@@ -21,21 +22,74 @@ const Game = (() => {
       oyunBitti:       false,
       dogruIndex:      -1,
       yanlisSecim:     0,
+      yanlisHarfler:   [],   // zone-d'ye düşen harfler kaydedilir
     };
+  }
+
+  // ══════════════════════════════
+  // KAYIT / YÜKLEME
+  // ══════════════════════════════
+
+  function _kaydet() {
+    try {
+      const kayit = {
+        puan:          durum.puan,
+        can:           durum.can,
+        seviye:        durum.seviye,
+        kelimeSira:    durum.kelimeSira,
+        tamamlananlar: durum.tamamlananlar,
+        yanlisHarfler: durum.yanlisHarfler,
+      };
+      localStorage.setItem(KAYIT_KEY, JSON.stringify(kayit));
+    } catch(e) {}
+  }
+
+  function _yukle() {
+    try {
+      const ham = localStorage.getItem(KAYIT_KEY);
+      if (!ham) return null;
+      return JSON.parse(ham);
+    } catch(e) { return null; }
+  }
+
+  function _kayitSil() {
+    try { localStorage.removeItem(KAYIT_KEY); } catch(e) {}
   }
 
   // ══════════════════════════════
   // INIT
   // ══════════════════════════════
 
-  function init() {
-    durum = _basDurum();
+  function init(sifirla) {
+    if (sifirla) {
+      _kayitSil();
+      durum = _basDurum();
+    } else {
+      const kayit = _yukle();
+      if (kayit) {
+        durum = _basDurum();
+        durum.puan          = kayit.puan          ?? 0;
+        durum.can           = kayit.can           ?? 3;
+        durum.seviye        = kayit.seviye        ?? 1;
+        durum.kelimeSira    = kayit.kelimeSira    ?? 0;
+        durum.tamamlananlar = kayit.tamamlananlar ?? [];
+        durum.yanlisHarfler = kayit.yanlisHarfler ?? [];
+      } else {
+        durum = _basDurum();
+      }
+    }
+
     UI.setCanlar(durum.can);
     UI.setPuan(durum.puan);
-    UI.setKelimeSayisi(0);
     UI.setSeviye(durum.seviye);
     UI.yanlisTemizle();
     UI.sozAlaniTemizle();
+
+    // Kaydedilmiş yanlış harfleri geri yükle
+    if (durum.yanlisHarfler.length > 0) {
+      UI.yanlisEkle(durum.yanlisHarfler);
+    }
+
     _seviyeBaslat(durum.seviye);
   }
 
@@ -54,12 +108,24 @@ const Game = (() => {
     document.body.dataset.tema = temalar[Math.min(sevNo - 1, temalar.length - 1)];
 
     durum.seviyeKelimeler = Words.getKelimeler(sevNo);
-    durum.tamamlananlar  = durum.seviyeKelimeler.map(() => false);
-    durum.kelimeSira     = 0;
+
+    // Kayıttan gelen tamamlananlar dizisi — aynı seviyedeyse kullan
+    if (!durum.tamamlananlar || durum.tamamlananlar.length !== durum.seviyeKelimeler.length) {
+      durum.tamamlananlar = durum.seviyeKelimeler.map(() => false);
+    }
 
     const sozVeri = Words.getSoz(sevNo);
     UI.sozAlaniOlustur(durum.seviyeKelimeler, sozVeri.soz, sozVeri.kaynak);
-    UI.setKelimeSayisi(0, durum.seviyeKelimeler.length);
+
+    // Daha önce tamamlanmış kelimeleri atasözü alanında aç
+    durum.tamamlananlar.forEach((tamam, i) => {
+      if (tamam) UI.sozKutucukAc(durum.seviyeKelimeler[i].kelime);
+    });
+
+    UI.setKelimeSayisi(
+      durum.tamamlananlar.filter(Boolean).length,
+      durum.seviyeKelimeler.length
+    );
 
     Grid.temizle();
     _yeniKelimeYukle();
@@ -100,6 +166,7 @@ const Game = (() => {
     );
 
     durum.kelimeSira++;
+    _kaydet();
 
     if (durum.tamamlananlar.every(Boolean)) {
       _seviyeBitti();
@@ -114,14 +181,15 @@ const Game = (() => {
   }
 
   // ══════════════════════════════
-  // TEZGAH YANLIŞ (grid.js'den çağrılır)
-  // 2. yanlış sırada — harfler zone D'ye
+  // TEZGAH YANLIŞ
   // ══════════════════════════════
 
   function tezgahYanlis(harfler) {
     if (durum.oyunBitti) return;
     if (typeof Ses !== 'undefined') Ses.yanlis();
+    durum.yanlisHarfler = (durum.yanlisHarfler || []).concat(harfler);
     UI.yanlisEkle(harfler);
+    _kaydet();
     _oyunBitiKontrol();
   }
 
@@ -139,10 +207,14 @@ const Game = (() => {
         UI.setSeviye(durum.seviye);
       }
       durum.can += 2;
+      durum.tamamlananlar = [];
+      durum.kelimeSira    = 0;
+      durum.yanlisHarfler = [];
       UI.setCanlar(durum.can);
       UI.yanlisTemizle();
       UI.sozAlaniTemizle();
       Grid.temizle();
+      _kaydet();
       _seviyeBaslat(durum.seviye);
     });
   }
@@ -157,6 +229,8 @@ const Game = (() => {
     if (typeof Ses !== 'undefined') Ses.sureDoldu();
 
     durum.kelimeSira++;
+    _kaydet();
+
     if (durum.kelimeSira >= durum.seviyeKelimeler.length) {
       _seviyeBitti();
       return;
@@ -217,21 +291,25 @@ const Game = (() => {
 
       if (durum.can < 5) { durum.can++; UI.setCanlar(durum.can); }
 
-      // Direkt halkaya — bekleyen alan yok
       Grid.harfEkle(secilen.harfler[0]);
       _yeniBorular();
+      _kaydet();
 
     } else {
       UI.boruSonuc(index, false);
       if (typeof Ses !== 'undefined') Ses.yanlis();
+
+      durum.yanlisHarfler = (durum.yanlisHarfler || []).concat(secilen.harfler);
       UI.yanlisEkle(secilen.harfler);
 
       durum.yanlisSecim++;
       if (durum.yanlisSecim >= MAX_YANLIS) {
+        _kaydet();
         setTimeout(() => _kelimeAtla(), 500);
       } else {
         _oyunBitiKontrol();
         _yeniBorular();
+        _kaydet();
       }
     }
   }
@@ -249,6 +327,7 @@ const Game = (() => {
       UI.setCanlar(durum.can);
       if (typeof Ses !== 'undefined') Ses.dogru();
       _yeniBorular();
+      _kaydet();
     }
   }
 
@@ -278,7 +357,7 @@ const Game = (() => {
         'Kelime: ' + durum.tamamlananlar.filter(Boolean).length + '\n' +
         'Seviye: ' + durum.seviye
       );
-      init();
+      init(true); // sıfırdan başla
     }, 500);
   }
 
@@ -287,7 +366,7 @@ const Game = (() => {
   // ══════════════════════════════
 
   window.addEventListener('DOMContentLoaded', () => {
-    init();
+    init();  // kayıt varsa yükle, yoksa sıfırdan başla
     document.getElementById('ipucu-btn').addEventListener('click', ipucuKullan);
   });
 
