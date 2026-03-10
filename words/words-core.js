@@ -42,7 +42,7 @@ const Words = (() => {
   function _kelimeCikar(soz) {
     return soz
       .split(' ')
-      .map(p => p.replace(/[,\.!?;:\-—«»""''()]/g, '').toUpperCase().trim())
+      .map(p => p.replace(/[,\.!?;:\-—«»""''()]/g, '').toLocaleUpperCase('tr-TR').trim())
       .filter(k => k.length >= 4 && !FILTRE.has(k));
   }
 
